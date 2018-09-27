@@ -22,10 +22,6 @@ case class IntLiteral(x: Int) extends Primary {
   override def toString: String = s"$x"
 }
 
-class ProgramState() {
-  val globals: collection.mutable.Map[String, ValueInstance] = collection.mutable.Map()
-}
-
 abstract class Evaluable {
   def evaluate(state: ProgramState): ValueInstance
 }

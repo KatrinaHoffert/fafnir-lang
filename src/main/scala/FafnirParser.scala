@@ -18,7 +18,7 @@ class FafnirParser extends RegexParsers {
 
   def term: Parser[Term] = multiplication | division | primary
 
-  def braces: Parser[Primary] = "(" ~ expression ~ ")" ^^ { case _ ~ x ~ _ => Braces(x)}
+  def braces: Parser[Primary] = "(" ~ expression ~ ")" ^^ { case _ ~ x ~ _ => Braces(x) }
 
   def multiplication: Parser[Term] = primary ~ "*" ~ term ^^ { case x ~ _ ~ y => MultiplicationTerm(x, y) }
 
@@ -31,7 +31,10 @@ class FafnirParser extends RegexParsers {
   // Statement components
   def statement: Parser[Statement] = assignmentStatement
 
-  def assignmentStatement: Parser[Statement] = "var".? ~ identifier ~ "=" ~ expression ^^ {
-    case declaration ~ ident ~ _ ~ expr => AssignmentStatement(declaration.isDefined, ident, expr)
+  def assignmentStatement: Parser[Statement] = "var".? ~ identifier ~ "=" ~ expression ~ ";" ^^ {
+    case declaration ~ ident ~ _ ~ expr ~ _ => AssignmentStatement(declaration.isDefined, ident, expr)
   }
+
+  // Program is a list of statements
+  def program: Parser[Program] = statement.+ ^^ { statements => Program(statements) }
 }
