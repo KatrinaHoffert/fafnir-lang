@@ -14,7 +14,7 @@ class FafnirParser extends RegexParsers {
   // Expression evaluation components
   def expression: Parser[Expression] = addition | subtraction | term
 
-  def primary: Parser[Primary] = braces | intLiteral | stringLiteral
+  def primary: Parser[Primary] = braces | intLiteral | stringLiteral | identifier
 
   def term: Parser[Term] = multiplication | division | primary
 
