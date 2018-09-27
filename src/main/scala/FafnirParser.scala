@@ -1,7 +1,8 @@
 import scala.util.parsing.combinator._
 
 class FafnirParser extends RegexParsers {
-  def identifier: Parser[Identifier] = """[A-Za-z_][A-Za-z_0-9]+""".r ^^ { name => Identifier(name) }
+  // Literal components
+  def identifier: Parser[Identifier] = """[A-Za-z_][A-Za-z_0-9]*""".r ^^ { name => Identifier(name) }
 
   def intLiteral: Parser[Primary] = """-?[0-9]+""".r ^^ { x => IntLiteral(x.toInt) }
 
@@ -10,11 +11,12 @@ class FafnirParser extends RegexParsers {
     StringLiteral(stringContents)
   }
 
+  // Expression evaluation components
+  def expression: Parser[Expression] = addition | subtraction | term
+
   def primary: Parser[Primary] = braces | intLiteral | stringLiteral
 
   def term: Parser[Term] = multiplication | division | primary
-
-  def expression: Parser[Expression] = addition | subtraction | term
 
   def braces: Parser[Primary] = "(" ~ expression ~ ")" ^^ { case _ ~ x ~ _ => Braces(x)}
 
@@ -25,4 +27,9 @@ class FafnirParser extends RegexParsers {
   def addition: Parser[Expression] = term ~ "+" ~ expression ^^ { case x ~ _ ~ y => AdditionEvaluable(x, y) }
 
   def subtraction: Parser[Expression] = term ~ "-" ~ expression ^^ { case x ~ _ ~ y => SubtractionEvaluable(x, y) }
+
+  // Statement components
+  def statement: Parser[Statement] = assignmentStatement
+
+  def assignmentStatement: Parser[Statement] = identifier ~ "=" ~ expression ^^ { case ident ~ _ ~ expr => AssignmentStatement(ident, expr)}
 }
