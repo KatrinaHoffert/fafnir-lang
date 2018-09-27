@@ -10,13 +10,16 @@ class ExpressionTest extends FunSuite {
       ("\"hello\" * 2", StringValue("hellohello")),
       ("\"hello\" + \" \" + \"world\"", StringValue("hello world")),
       ("5 / 2 - 2", IntValue(0)),
+      ("-5 * -5", IntValue(25)),
+      ("5 - -2", IntValue(7)),
+      ("5-2", IntValue(3)),
     )
 
     for(input_output <- inputs_to_outputs) {
       parser.parse(parser.expression, input_output._1) match {
         case parser.Success(matched, _) => assert(matched.evaluate === input_output._2)
-        case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
-        case parser.Error(msg, _) => fail(s"Parse error: $msg")
+        case parser.Failure(msg, _) => fail(s"Parse failure for input ${input_output._1}: $msg")
+        case parser.Error(msg, _) => fail(s"Parse error for input ${input_output._1}: $msg")
       }
     }
   }
@@ -33,8 +36,8 @@ class ExpressionTest extends FunSuite {
     for(input_output <- inputs_to_outputs) {
       parser.parse(parser.expression, input_output._1) match {
         case parser.Success(matched, _) => assert(matched.toString === input_output._2)
-        case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
-        case parser.Error(msg, _) => fail(s"Parse error: $msg")
+        case parser.Failure(msg, _) => fail(s"Parse failure for input ${input_output._1}: $msg")
+        case parser.Error(msg, _) => fail(s"Parse error for input ${input_output._1}: $msg")
       }
     }
   }
