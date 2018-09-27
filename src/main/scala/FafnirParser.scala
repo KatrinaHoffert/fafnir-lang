@@ -29,7 +29,9 @@ class FafnirParser extends RegexParsers {
   def subtraction: Parser[Expression] = term ~ "-" ~ expression ^^ { case x ~ _ ~ y => SubtractionEvaluable(x, y) }
 
   // Statement components
-  def statement: Parser[Statement] = assignmentStatement
+  def statement: Parser[Statement] = assignmentStatement | block
+
+  def block: Parser[Statement] = "{" ~ statement.* ~ "}" ^^ { case _ ~ statements ~ _ => Block(statements) }
 
   def assignmentStatement: Parser[Statement] = "var".? ~ identifier ~ "=" ~ expression ~ ";" ^^ {
     case declaration ~ ident ~ _ ~ expr ~ _ => AssignmentStatement(declaration.isDefined, ident, expr)

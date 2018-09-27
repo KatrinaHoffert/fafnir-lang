@@ -6,8 +6,10 @@ class ProgramTest extends FunSuite {
 
     val program = """
       var x = 4 + (3 - 1) * 2;
-      var y = 9;
-      y = 10;
+      {
+        var y = 9;
+        y = 10;
+      }
     """
 
     val expectedVariables = Map(
@@ -29,13 +31,15 @@ class ProgramTest extends FunSuite {
 
     val program = """
       var x = 4 + (3 - 1) * 2;
-      var y = 9;
+      {var y = 9;}
       y = 10;
     """
 
     val expectedOutput = """
 var x = 4 + ((3 - 1) * 2);
-var y = 9;
+{
+  var y = 9;
+}
 y = 10;
     """.trim
 
