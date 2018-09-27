@@ -7,9 +7,9 @@ class StatementTest extends FunSuite {
 
     // Input -> expected evaluation
     val statements = Seq(
-      "x = 4 + (3 - 1) * 2",
-      "y = 9",
-      "_Abc123 = \"Hello\" + \" world!\"",
+      "var x = 4 + (3 - 1) * 2",
+      "var y = 9",
+      "var _Abc123 = \"Hello\" + \" world!\"",
       "y = 10"
     )
 
@@ -29,11 +29,26 @@ class StatementTest extends FunSuite {
     assert(state.globals === expectedVariables)
   }
 
+  test("Assignment fails if variable not declared first") {
+    val parser = new FafnirParser()
+    val state = new ProgramState()
+    parser.parse(parser.statement, "x = 123") match {
+      case parser.Success(matched, _) =>
+        val intercepted = intercept[Exception] {
+          matched.execute(state)
+        }
+        assert(intercepted.getMessage === "Assignment to undeclared variable x")
+      case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
+      case parser.Error(msg, _) => fail(s"Parse error: $msg")
+    }
+  }
+
   test("Statements pretty print") {
     val parser = new FafnirParser()
 
     // Input -> expected evaluation
     val inputs_to_outputs = Seq(
+      ("var x=123+4", "var x = 123 + 4"),
       ("x=123+4", "x = 123 + 4"),
     )
 

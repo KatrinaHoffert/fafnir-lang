@@ -31,5 +31,7 @@ class FafnirParser extends RegexParsers {
   // Statement components
   def statement: Parser[Statement] = assignmentStatement
 
-  def assignmentStatement: Parser[Statement] = identifier ~ "=" ~ expression ^^ { case ident ~ _ ~ expr => AssignmentStatement(ident, expr)}
+  def assignmentStatement: Parser[Statement] = "var".? ~ identifier ~ "=" ~ expression ^^ {
+    case declaration ~ ident ~ _ ~ expr => AssignmentStatement(declaration.isDefined, ident, expr)
+  }
 }
