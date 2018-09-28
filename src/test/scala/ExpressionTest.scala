@@ -4,8 +4,8 @@ class ExpressionTest extends FunSuite {
   test("Expressions evaluate to expected values") {
     val parser = new FafnirParser()
     val state = new ProgramState()
-    state.globals("foo") = IntValue(7)
-    state.globals("myVar") = StringValue("abc")
+    state.variables("foo") = IntValue(7)
+    state.variables("myVar") = StringValue("abc")
 
     // Input -> expected evaluation
     val inputs_to_outputs = Seq(

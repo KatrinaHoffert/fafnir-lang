@@ -26,7 +26,7 @@ class StatementTest extends FunSuite {
       "y" -> IntValue(10),
       "_Abc123" -> StringValue("Hello world!")
     )
-    assert(state.globals === expectedVariables)
+    assert(state.variables.allVariables === expectedVariables)
   }
 
   test("Assignment fails if variable not declared first") {
