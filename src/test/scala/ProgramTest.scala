@@ -6,16 +6,24 @@ class ProgramTest extends FunSuite {
 
     val program = """
       var x = 4 + (3 - 1) * 2;
+      if(x)
       {
         var y = 2;
         x = x + y;
       }
+      if(x - 10) {
+        var notReached = "foo";
+      }
       var z = "Something new";
+      {
+        var local = "Will be out of scope at end of program";
+        z = z + " or old";
+      }
     """
 
     val expectedVariables = Map(
       "x" -> IntValue(10),
-      "z" -> StringValue("Something new"),
+      "z" -> StringValue("Something new or old"),
     )
 
     parser.parse(parser.program, program) match {

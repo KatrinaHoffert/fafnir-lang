@@ -3,62 +3,67 @@ abstract class ValueInstance {
   def -(that: ValueInstance): ValueInstance
   def *(that: ValueInstance): ValueInstance
   def /(that: ValueInstance): ValueInstance
+  def isTruthy: Boolean
 }
 
 case class IntValue(value: Int) extends ValueInstance {
-  def +(that: ValueInstance): ValueInstance = {
+  override def +(that: ValueInstance): ValueInstance = {
     that match {
-      case intThat: IntValue => IntValue(this.value + intThat.value)
+      case intThat: IntValue => IntValue(value + intThat.value)
       case _ => throw new Exception("Not supported type")
     }
   }
 
-  def -(that: ValueInstance): ValueInstance = {
+  override def -(that: ValueInstance): ValueInstance = {
     that match {
-      case intThat: IntValue => IntValue(this.value - intThat.value)
+      case intThat: IntValue => IntValue(value - intThat.value)
       case _ => throw new Exception("Not supported type")
     }
   }
 
-  def *(that: ValueInstance): ValueInstance = {
+  override def *(that: ValueInstance): ValueInstance = {
     that match {
-      case intThat: IntValue => IntValue(this.value * intThat.value)
+      case intThat: IntValue => IntValue(value * intThat.value)
       case _ => throw new Exception("Not supported type")
     }
   }
 
-  def /(that: ValueInstance): ValueInstance = {
+  override def /(that: ValueInstance): ValueInstance = {
     that match {
-      case intThat: IntValue => IntValue(this.value / intThat.value)
+      case intThat: IntValue => IntValue(value / intThat.value)
       case _ => throw new Exception("Not supported type")
     }
   }
 
-  override def toString: String = this.value.toString
+  override def isTruthy: Boolean = value != 0
+
+  override def toString: String = value.toString
 }
 
 case class StringValue(value: String) extends ValueInstance {
-  def +(that: ValueInstance): ValueInstance = {
+  override def +(that: ValueInstance): ValueInstance = {
     that match {
-      case stringThat: StringValue => StringValue(this.value + stringThat.value)
+      case stringThat: StringValue => StringValue(value + stringThat.value)
       case _ => throw new Exception("Not supported type")
     }
   }
 
-  def -(that: ValueInstance): ValueInstance = {
+  override def -(that: ValueInstance): ValueInstance = {
     throw new Exception("Not supported type")
   }
 
-  def *(that: ValueInstance): ValueInstance = {
+  override def *(that: ValueInstance): ValueInstance = {
     that match {
-      case intThat: IntValue => StringValue(this.value * intThat.value)
+      case intThat: IntValue => StringValue(value * intThat.value)
       case _ => throw new Exception("Not supported type")
     }
   }
 
-  def /(that: ValueInstance): ValueInstance = {
+  override def /(that: ValueInstance): ValueInstance = {
     throw new Exception("Not supported type")
   }
 
-  override def toString: String = s""""${this.value}""""
+  override def isTruthy: Boolean = value.length > 0
+
+  override def toString: String = s""""$value""""
 }

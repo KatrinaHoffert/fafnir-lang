@@ -29,12 +29,16 @@ class FafnirParser extends RegexParsers {
   def subtraction: Parser[Expression] = term ~ "-" ~ expression ^^ { case x ~ _ ~ y => SubtractionEvaluable(x, y) }
 
   // Statement components
-  def statement: Parser[Statement] = assignmentStatement | block
+  def statement: Parser[Statement] = assignmentStatement | ifStatement | block
 
-  def block: Parser[Statement] = "{" ~ statement.* ~ "}" ^^ { case _ ~ statements ~ _ => Block(statements) }
+  def block: Parser[Block] = "{" ~ statement.* ~ "}" ^^ { case _ ~ statements ~ _ => Block(statements) }
 
   def assignmentStatement: Parser[Statement] = "var".? ~ identifier ~ "=" ~ expression ~ ";" ^^ {
     case declaration ~ ident ~ _ ~ expr ~ _ => AssignmentStatement(declaration.isDefined, ident, expr)
+  }
+
+  def ifStatement: Parser[Statement] = "if" ~ "(" ~ expression ~ ")" ~ block ^^ {
+    case _ ~ _ ~ expr ~ _ ~ ifBlock => IfStatement(expr, ifBlock)
   }
 
   // Program is a list of statements

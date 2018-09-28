@@ -21,6 +21,18 @@ case class AssignmentStatement(declaration: Boolean, identifier: Identifier, exp
   override def toString: String = s"${if(declaration) "var " else ""}$identifier = $expression;"
 }
 
+case class IfStatement(expression: Expression, ifBlock: Block) extends Statement {
+  override def execute(state: ProgramState): Unit = {
+    val expressionResult = expression.evaluate(state)
+    println(s"Expression: $expression evaluated to $expressionResult and truthiness is ${expressionResult.isTruthy}")
+    if(expressionResult.isTruthy) {
+      ifBlock.execute(state)
+    }
+  }
+
+  override def toString: String = s"if($expression) $ifBlock"
+}
+
 abstract class Statement {
   def execute(state: ProgramState): Unit
 }
