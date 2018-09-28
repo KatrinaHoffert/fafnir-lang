@@ -7,7 +7,13 @@ case class Block(statements: List[Statement]) extends Statement {
     state.variables.exitScope()
   }
 
-  override def toString: String = "{\n" + statements.map(Constants.indentation + _.toString).mkString("\n") + "\n}"
+  override def toString: String = {
+    // Indent all lines inside the block
+    val statementLines = statements.map(_.toString).mkString("\n")
+    val indentedStatementLines = statementLines.split('\n').map(line => Constants.indentation + line).mkString("\n")
+
+    s"{\n$indentedStatementLines\n}"
+  }
 }
 
 case class AssignmentStatement(declaration: Boolean, identifier: Identifier, expression: Expression) extends Statement {
@@ -45,7 +51,22 @@ case class IfStatement(expression: Expression, ifBlock: Block, elifSections: Lis
     }
   }
 
-  override def toString: String = s"if($expression) $ifBlock"
+  override def toString: String = {
+    val elifSectionsString = if(elifSections.nonEmpty) {
+      "\n" + elifSections.map(section => s"elif(${section.expression}) ${section.ifBlock}").mkString("\n")
+    }
+    else {
+      ""
+    }
+    val elseSectionString = if(elseSection.isDefined) {
+      "\n" + s"else ${elseSection.get}"
+    }
+    else {
+      ""
+    }
+
+    s"if($expression) $ifBlock" + elifSectionsString + elseSectionString
+  }
 }
 
 abstract class Statement {

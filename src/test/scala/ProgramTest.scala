@@ -117,6 +117,22 @@ class ProgramTest extends FunSuite {
       var x = 4 + (3 - 1) * 2;
       {var y = 9;}
       y = 10;
+
+      if (1) {
+        if(0)
+        {
+          y = 123;
+        }
+        elif ( x + y) {
+          y = 123;
+        }
+        elif (x - y) {
+          y = 321; }
+        else
+        {
+          if(1){ a = 1; }
+        }
+      }
     """
 
     val expectedOutput = """
@@ -125,10 +141,29 @@ var x = 4 + ((3 - 1) * 2);
   var y = 9;
 }
 y = 10;
+if(1) {
+  if(0) {
+    y = 123;
+  }
+  elif(x + y) {
+    y = 123;
+  }
+  elif(x - y) {
+    y = 321;
+  }
+  else {
+    if(1) {
+      a = 1;
+    }
+  }
+}
     """.trim
 
     parser.parse(parser.program, program) match {
-      case parser.Success(matched, _) => assert(matched.toString === expectedOutput)
+      case parser.Success(matched, _) =>
+        println(matched.toString)
+        println(expectedOutput)
+        assert(matched.toString === expectedOutput)
       case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
       case parser.Error(msg, _) => fail(s"Parse error: $msg")
     }
