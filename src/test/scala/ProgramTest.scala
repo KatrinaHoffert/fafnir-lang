@@ -35,6 +35,81 @@ class ProgramTest extends FunSuite {
     }
   }
 
+  test("If statements are taken as expected") {
+    val parser = new FafnirParser()
+
+    // All these programs should result in `a` being assigned "1" (it defaults to 0). Taking any wrong path would result
+    // in it having a different value.
+    val programs = Seq(
+      """
+        if(1) { a = 1; }
+        elif(1 + 2) { a = 123; }
+        elif(0 / 0) { a = 123; }
+        else { a = 123; }
+      """,
+      """
+        if (a) {
+          a = 123;
+        } elif (0) {
+          a = 123;
+        } elif (a + 1) {
+          a = 1;
+        }
+      """,
+      """
+        if(0){a=123;}
+        elif(0){a=123;}
+        else{a=1;}
+      """,
+      """
+        if (0) {
+          a = 123;
+        } elif (0) {
+          a = 123;
+        } elif (0) {
+          a = 123;
+        }
+        else {
+          a = 1;
+        }
+      """,
+      """
+        if (1) {
+          a = 1;
+        }
+      """,
+      """
+        if (0) {
+          a = 123;
+        }
+        a = a + 1;
+      """,
+      """
+        if (1) {
+          if(0)
+          {
+            a = 123;
+          }
+          else
+          {
+            if(1){ a = 1; }
+          }
+        }
+      """
+    )
+
+    for(p <- programs) {
+      val programWithDecalaredVariable = "var a = 0;\n" + p
+      parser.parse(parser.program, programWithDecalaredVariable) match {
+        case parser.Success(matched, _) =>
+          val state = matched.execute()
+          assert(state.variables.allVariables("a") === IntValue(1), s"Program: $programWithDecalaredVariable")
+        case parser.Failure(msg, _) => fail(s"Parse failure: $msg; Program: $programWithDecalaredVariable")
+        case parser.Error(msg, _) => fail(s"Parse error: $msg; Program: $programWithDecalaredVariable")
+      }
+    }
+  }
+
   test("Statements pretty print") {
     val parser = new FafnirParser()
 

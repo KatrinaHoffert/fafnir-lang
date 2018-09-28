@@ -37,8 +37,16 @@ class FafnirParser extends RegexParsers {
     case declaration ~ ident ~ _ ~ expr ~ _ => AssignmentStatement(declaration.isDefined, ident, expr)
   }
 
-  def ifStatement: Parser[Statement] = "if" ~ "(" ~ expression ~ ")" ~ block ^^ {
-    case _ ~ _ ~ expr ~ _ ~ ifBlock => IfStatement(expr, ifBlock)
+  def ifStatement: Parser[IfStatement] = "if" ~ "(" ~ expression ~ ")" ~ block ~ elifSection.* ~ elseSection.? ^^ {
+    case _ ~ _ ~ expr ~ _ ~ ifBlock ~ elifSec ~ elseSec => IfStatement(expr, ifBlock, elifSec, elseSec)
+  }
+
+  def elifSection: Parser[IfStatement] = "elif" ~ "(" ~ expression ~ ")" ~ block ^^ {
+    case _ ~ _ ~ expr ~ _ ~ elifBlock => IfStatement(expr, elifBlock, List.empty[IfStatement], None)
+  }
+
+  def elseSection: Parser[Block] = "else" ~ block ^^ {
+    case _ ~ elseBlock => elseBlock
   }
 
   // Program is a list of statements
