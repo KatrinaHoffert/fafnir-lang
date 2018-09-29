@@ -95,9 +95,9 @@ case class FunctionValue(args: List[Identifier], body: List[Statement]) extends 
       throw new Exception(s"Function takes ${args.length} arguments but only ${argValues.length} were provided.")
     }
 
-    state.variables.enterScope()
+    state.variables.enterFrame()
     for((variableName, variableValue) <- args.zip(argValues)) {
-      state.variables.pushVariableOntoStack(variableName.name, variableValue)
+      state.variables.setFrameVariable(variableName.name, variableValue)
     }
 
     for(statement <- body) {
