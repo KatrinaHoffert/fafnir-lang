@@ -22,3 +22,11 @@ case class DivisionTerm(x: Evaluable, y: Evaluable) extends Term {
   override def evaluate(state: ProgramState): ValueInstance = x.evaluate(state) / y.evaluate(state)
   override def toString: String = s"($x / $y)"
 }
+
+case class FunctionCall(identifier: Identifier, argExpressions: List[Expression]) extends Primary {
+  override def evaluate(state: ProgramState): ValueInstance = {
+    val argValues = argExpressions.map(_.evaluate(state))
+    state.variables(identifier.name).call(state, argValues)
+  }
+  override def toString: String = s"$identifier(${argExpressions.map(_.toString).mkString(", ")})"
+}

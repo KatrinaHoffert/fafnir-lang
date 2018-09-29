@@ -16,7 +16,11 @@ class FafnirParser extends RegexParsers {
   // Expression evaluation components
   def expression: Parser[Expression] = addition | subtraction | term
 
-  def primary: Parser[Primary] = braces | intLiteral | stringLiteral | identifier
+  def primary: Parser[Primary] = braces | intLiteral | stringLiteral | functionCall | identifier
+
+  def functionCall: Parser[FunctionCall] = identifier ~ "(" ~ repsep(expression, ",") ~ ")" ^^ {
+    case funcName ~ _ ~ argExpressions ~ _ => FunctionCall(funcName, argExpressions)
+  }
 
   def term: Parser[Term] = multiplication | division | primary
 
@@ -31,7 +35,8 @@ class FafnirParser extends RegexParsers {
   def subtraction: Parser[Expression] = term ~ "-" ~ expression ^^ { case x ~ _ ~ y => SubtractionEvaluable(x, y) }
 
   // Statement components
-  def statement: Parser[Statement] = assignmentStatement | ifStatement | whileLoop | functionDefinition | block
+  def statement: Parser[Statement] = assignmentStatement | ifStatement | whileLoop | functionDefinition |
+    functionCallStatement | block
 
   def block: Parser[Block] = "{" ~ statement.* ~ "}" ^^ { case _ ~ statements ~ _ => Block(statements) }
 
@@ -56,11 +61,13 @@ class FafnirParser extends RegexParsers {
   }
 
   // Functions
-  def functionDefinition: Parser[Statement] = "func" ~ identifier ~ argumentList ~ block ^^ {
+  def functionDefinition: Parser[Statement] = "func" ~ identifier ~ argumentNameList ~ block ^^ {
     case _ ~ identifier ~ args ~ body => FunctionDeclaration(identifier, args, body)
   }
 
-  def argumentList: Parser[List[Identifier]] = "(" ~ repsep(identifier, ",") ~ ")" ^^ { case _ ~ args ~ _ => args }
+  def argumentNameList: Parser[List[Identifier]] = "(" ~ repsep(identifier, ",") ~ ")" ^^ { case _ ~ args ~ _ => args }
+
+  def functionCallStatement: Parser[Statement] = functionCall ~ ";" ^^ { case func ~ _ => FunctionCallStatement(func) }
 
   // Program is a list of statements
   def program: Parser[Program] = statement.+ ^^ { statements => Program(statements) }

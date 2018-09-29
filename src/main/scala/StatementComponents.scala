@@ -35,6 +35,15 @@ case class FunctionDeclaration(identifier: Identifier, args: List[Identifier], b
   override def toString: String = s"func $identifier(${args.mkString(", ")}) $body"
 }
 
+case class FunctionCallStatement(function: FunctionCall) extends Statement {
+  override def execute(state: ProgramState): Unit = {
+    // Only has an effect if there's side effects
+    function.evaluate(state)
+  }
+
+  override def toString: String = s"$function;"
+}
+
 case class IfStatement(expression: Expression, ifBlock: Block, elifSections: List[IfStatement], elseSection: Option[Block]) extends Statement {
   override def execute(state: ProgramState): Unit = {
     val expressionResult = expression.evaluate(state)

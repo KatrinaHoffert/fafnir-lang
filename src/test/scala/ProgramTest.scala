@@ -33,21 +33,26 @@ class ProgramTest extends FunSuite {
         |// Loop we never go into
         |while(0) { loopCount = -1; }
         |
-        |var aPlusB = 0;
+        |// Testing function definitions
+        |var returnValue = 0;
         |func foo(a, b) {
-        |  aPlusB = a + b;
+        |  returnValue = a + b;
         |}
+        |foo(5, 7);
+        |var renamedFoo = foo;
+        |if(renamedFoo(returnValue, 1)) {} // Evaluating function in an expression
       """.stripMargin
 
     val expectedVariables = Map(
       "x" -> IntValue(11),
       "z" -> StringValue("Something new or old"),
       "loopCount" -> IntValue(5),
-      "aPlusB" -> IntValue(0)
+      "returnValue" -> IntValue(13)
     )
 
     val expectedFunctions = Map(
-      "foo" -> List("a", "b")
+      "foo" -> List("a", "b"),
+      "renamedFoo" -> List("a", "b"),
     )
 
     parser.parse(parser.program, program) match {
