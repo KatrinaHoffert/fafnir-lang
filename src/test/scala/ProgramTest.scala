@@ -143,7 +143,7 @@ class ProgramTest extends TestBase {
     }
   }
 
-  test("Statements pretty print") {
+  test("Programs pretty print") {
     val parser = new FafnirParser()
 
     val program =
@@ -166,6 +166,8 @@ class ProgramTest extends TestBase {
         |    if(1){ a = 1; }
         |  }
         |}
+        |func someFunction (a, b) { var local = a + b; }
+        |someFunction(1+2, 3);
       """.stripMargin
 
     val expectedOutput =
@@ -191,6 +193,10 @@ class ProgramTest extends TestBase {
         |    }
         |  }
         |}
+        |func someFunction(a, b) {
+        |  var local = a + b;
+        |}
+        |someFunction(1 + 2, 3);
       """.stripMargin.trim
 
     doParse[Program](parser, parser.program, program) { matched =>
