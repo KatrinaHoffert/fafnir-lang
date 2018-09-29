@@ -32,18 +32,38 @@ class ProgramTest extends FunSuite {
         |
         |// Loop we never go into
         |while(0) { loopCount = -1; }
+        |
+        |var aPlusB = 0;
+        |func foo(a, b) {
+        |  aPlusB = a + b;
+        |}
       """.stripMargin
 
     val expectedVariables = Map(
       "x" -> IntValue(11),
       "z" -> StringValue("Something new or old"),
       "loopCount" -> IntValue(5),
+      "aPlusB" -> IntValue(0)
+    )
+
+    val expectedFunctions = Map(
+      "foo" -> List("a", "b")
     )
 
     parser.parse(parser.program, program) match {
-      case parser.Success(matched, _) =>
+      case parser.Success(matched: Program, _) =>
         val state = matched.execute()
-        assert(state.variables.allVariables === expectedVariables)
+
+        // We want to compare functions and non-function variables separately because functions aren't really
+        // comparable (so we'll just compare the name and argument list).
+        val variablesMap = state.variables.allVariables
+        val (functionVariables, nonFunctionVariables) = variablesMap.partition(_._2.isInstanceOf[FunctionValue])
+        val functionVariablesToArgs = functionVariables.map({
+          case (name, value) => (name, value.asInstanceOf[FunctionValue].args.map(_.name))
+        })
+
+        assert(nonFunctionVariables === expectedVariables)
+        assert(functionVariablesToArgs === expectedFunctions)
       case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
       case parser.Error(msg, _) => fail(s"Parse error: $msg")
     }

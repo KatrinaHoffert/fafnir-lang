@@ -27,6 +27,14 @@ case class AssignmentStatement(declaration: Boolean, identifier: Identifier, exp
   override def toString: String = s"${if(declaration) "var " else ""}$identifier = $expression;"
 }
 
+case class FunctionDeclaration(identifier: Identifier, args: List[Identifier], body: Block) extends Statement {
+  override def execute(state: ProgramState): Unit = {
+    state.variables(identifier.name) = FunctionValue(args, body.statements)
+  }
+
+  override def toString: String = s"func $identifier(${args.mkString(", ")}) $body"
+}
+
 case class IfStatement(expression: Expression, ifBlock: Block, elifSections: List[IfStatement], elseSection: Option[Block]) extends Statement {
   override def execute(state: ProgramState): Unit = {
     val expressionResult = expression.evaluate(state)

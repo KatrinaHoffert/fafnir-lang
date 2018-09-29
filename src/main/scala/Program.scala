@@ -37,6 +37,14 @@ class Scopes() {
     }
   }
 
+  /**
+    * Pushes a variable onto the newest scope in the stack, ignoring if it might already be in an earlier scope (thus
+    * allowing ghosting).
+    */
+  def pushVariableOntoStack(name: String, value: ValueInstance): Unit = {
+    scopeStack.head(name) = value
+  }
+
   def contains(name: String): Boolean = scopeStack.exists(_.contains(name))
 
   def enterScope(): Unit = scopeStack.prepend(collection.mutable.Map[String, ValueInstance]())
