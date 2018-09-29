@@ -3,7 +3,6 @@ import org.scalatest.FunSuite
 class ProgramTest extends TestBase {
   test("Programs produce the correct final state") {
     val parser = new FafnirParser()
-
     val program =
       """
         |// Comment
@@ -41,18 +40,24 @@ class ProgramTest extends TestBase {
         |foo(5, 7);
         |var renamedFoo = foo;
         |if(renamedFoo(returnValue, 1)) {} // Evaluating function in an expression
+        |
+        |// Returning functions
+        |func square(a) { return a * a; }
+        |var thirty = square(5) + 5;
       """.stripMargin
 
     val expectedVariables = Map(
       "x" -> IntValue(11),
       "z" -> StringValue("Something new or old"),
       "loopCount" -> IntValue(5),
-      "returnValue" -> IntValue(13)
+      "returnValue" -> IntValue(13),
+      "thirty" -> IntValue(30),
     )
 
     val expectedFunctions = Map(
       "foo" -> List("a", "b"),
       "renamedFoo" -> List("a", "b"),
+      "square" -> List("a"),
     )
 
     doParse[Program](parser, parser.program, program) { matched =>
@@ -201,6 +206,84 @@ class ProgramTest extends TestBase {
 
     doParse[Program](parser, parser.program, program) { matched =>
       assert(matched.toString === expectedOutput)
+    }
+  }
+
+  test("Recursion works") {
+    val parser = new FafnirParser()
+    val program =
+      """
+        |// This is slightly complicated due to the lack of comparison operators
+        |func fibonacci(n) {
+        |  // Assumes n >= 0
+        |  if(n) { // n != 0
+        |    if(n - 1) { // n != 1
+        |      return fibonacci(n - 1) + fibonacci(n - 2);
+        |    }
+        |    else { // n == 1
+        |      return 1;
+        |    }
+        |  }
+        |  else { // n == 0
+        |    return 0;
+        |  }
+        |}
+        |
+        |var f0 = fibonacci(0);
+        |var f1 = fibonacci(1);
+        |var f2 = fibonacci(2);
+        |var f3 = fibonacci(3);
+        |var f4 = fibonacci(4);
+        |var f5 = fibonacci(5);
+        |var f6 = fibonacci(6);
+      """.stripMargin
+
+    val expectedVariables = Map(
+      "f0" -> IntValue(0),
+      "f1" -> IntValue(1),
+      "f2" -> IntValue(1),
+      "f3" -> IntValue(2),
+      "f4" -> IntValue(3),
+      "f5" -> IntValue(5),
+      "f6" -> IntValue(8),
+    )
+
+    doParse[Program](parser, parser.program, program) { matched =>
+      val state = matched.execute()
+      val nonFunctionVariables = state.variables.allVariables.filter(!_._2.isInstanceOf[FunctionValue])
+      assert(nonFunctionVariables === expectedVariables)
+    }
+  }
+
+  test("Void types are used when functions don't return a value") {
+    val parser = new FafnirParser()
+    val program =
+      """
+        |func mixup() { return 1 + 1; } // So we can see if return values are mishandled
+        |func noReturn() {
+        |  var a = 123;
+        |}
+        |func returnNoExpression() {
+        |  var a = 123;
+        |  return;
+        |}
+        |var expectedValue = mixup();
+        |var noReturnValue = noReturn();
+        |expectedValue = expectedValue + mixup();
+        |var returnNoExpressionValue = returnNoExpression();
+        |expectedValue = expectedValue + mixup();
+      """.stripMargin
+
+    val expectedVariables = Map(
+      "expectedValue" -> IntValue(6),
+      "noReturnValue" -> VoidValue(),
+      "returnNoExpressionValue" -> VoidValue(),
+    )
+
+    doParse[Program](parser, parser.program, program) { matched =>
+      val state = matched.execute()
+      val nonFunctionVariables = state.variables.allVariables.filter(!_._2.isInstanceOf[FunctionValue])
+      assert(nonFunctionVariables === expectedVariables)
     }
   }
 }

@@ -48,6 +48,19 @@ case class FunctionCallStatement(function: FunctionCall) extends Statement {
   override def toString: String = s"$function;"
 }
 
+case class ReturnStatement(expression: Option[Expression]) extends Statement {
+  override def execute(state: ProgramState): Unit = {
+    if(!state.variables.inFrame) {
+      throw new Exception("Cannot return when not in a function.")
+    }
+
+    val returnValue = expression.map(_.evaluate(state))
+    state.signalReturning(returnValue.getOrElse(VoidValue()))
+  }
+
+  override def toString: String = s"return $expression;"
+}
+
 case class IfStatement(expression: Expression, ifBlock: Block, elifSections: List[IfStatement], elseSection: Option[Block]) extends Statement {
   override def execute(state: ProgramState): Unit = {
     val expressionResult = expression.evaluate(state)

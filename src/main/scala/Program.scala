@@ -14,6 +14,16 @@ case class Program(statements: List[Statement]) {
 
 class ProgramState() {
   val variables: Scopes = new Scopes()
+
+  // Signals that a function is returning, so execution of statements must stop (and have the function evaluate to
+  // the return value, if there is one).
+  var isReturning: Boolean = false
+  var returnValue: ValueInstance = VoidValue()
+
+  def signalReturning(value: ValueInstance): Unit = {
+    returnValue = value
+    isReturning = true
+  }
 }
 
 /**
@@ -124,4 +134,6 @@ class Scopes() {
 
     variables.toMap
   }
+
+  def inFrame: Boolean = frameAndScopeStack.nonEmpty
 }

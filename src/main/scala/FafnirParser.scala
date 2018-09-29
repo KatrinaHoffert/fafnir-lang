@@ -36,7 +36,7 @@ class FafnirParser extends RegexParsers {
 
   // Statement components
   def statement: Parser[Statement] = assignmentStatement | ifStatement | whileLoop | functionDefinition |
-    functionCallStatement | block
+    functionCallStatement | returnStatement | block
 
   def block: Parser[Block] = "{" ~ statement.* ~ "}" ^^ { case _ ~ statements ~ _ => Block(statements) }
 
@@ -68,6 +68,8 @@ class FafnirParser extends RegexParsers {
   def argumentNameList: Parser[List[Identifier]] = "(" ~ repsep(identifier, ",") ~ ")" ^^ { case _ ~ args ~ _ => args }
 
   def functionCallStatement: Parser[Statement] = functionCall ~ ";" ^^ { case func ~ _ => FunctionCallStatement(func) }
+
+  def returnStatement: Parser[Statement] = "return" ~ expression.? ~ ";" ^^ { case _ ~ value ~ _ => ReturnStatement(value) }
 
   // Program is a list of statements
   def program: Parser[Program] = statement.+ ^^ { statements => Program(statements) }

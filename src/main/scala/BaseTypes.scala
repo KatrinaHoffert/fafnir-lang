@@ -61,6 +61,11 @@ case class StringValue(value: String) extends ValueInstance {
   override def toString: String = s""""$value""""
 }
 
+case class VoidValue() extends ValueInstance {
+  override def isTruthy: Boolean = false
+  override def toString: String = "Void"
+}
+
 case class FunctionValue(args: List[Identifier], body: List[Statement]) extends ValueInstance {
   override def call(state: ProgramState, argValues: List[ValueInstance]): ValueInstance = {
     if(args.length != argValues.length) {
@@ -72,13 +77,18 @@ case class FunctionValue(args: List[Identifier], body: List[Statement]) extends 
       state.variables.setFrameVariable(variableName.name, variableValue)
     }
 
-    for(statement <- body) {
+    for(statement <- body if !state.isReturning) {
       statement.execute(state)
     }
     state.variables.exitScope()
 
-    IntValue(0) // Dummy return value for now
+    // Never hit a return statement? Function returned Void.
+    if(!state.isReturning) state.returnValue = VoidValue()
+
+    // Get the return value
+    state.isReturning = false
+    state.returnValue
   }
 
-  override def toString: String = "<function>"
+  override def toString: String = "Function"
 }
