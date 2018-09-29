@@ -6,7 +6,8 @@ class ProgramTest extends FunSuite {
 
     val program =
       """
-        |var x = 4 + (3 - 1) * 2;
+        |// Comment
+        |var x = 4 + (3 - 1) * 2; // End of line comments work too
         |if(x)
         |{
         |  var y = 2;

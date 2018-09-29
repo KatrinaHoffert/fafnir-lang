@@ -1,6 +1,8 @@
 import scala.util.parsing.combinator._
 
 class FafnirParser extends RegexParsers {
+  override protected val whiteSpace: scala.util.matching.Regex = """(\s|//.*)+""".r
+
   // Literal components
   def identifier: Parser[Identifier] = """[A-Za-z_][A-Za-z_0-9]*""".r ^^ { name => Identifier(name) }
 
