@@ -24,11 +24,20 @@ class ProgramTest extends FunSuite {
         |  var local = "Will be out of scope at end of program";
         |  z = z + " or old";
         |}
+        |
+        |var loopCount = 0;
+        |while(loopCount - 5) {
+        |  loopCount = loopCount + 1;
+        |}
+        |
+        |// Loop we never go into
+        |while(0) { loopCount = -1; }
       """.stripMargin
 
     val expectedVariables = Map(
       "x" -> IntValue(11),
       "z" -> StringValue("Something new or old"),
+      "loopCount" -> IntValue(5),
     )
 
     parser.parse(parser.program, program) match {

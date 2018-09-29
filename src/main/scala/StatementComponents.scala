@@ -69,6 +69,16 @@ case class IfStatement(expression: Expression, ifBlock: Block, elifSections: Lis
   }
 }
 
+case class WhileLoop(expression: Expression, whileBlock: Block) extends Statement {
+  override def execute(state: ProgramState): Unit = {
+    while(expression.evaluate(state).isTruthy) {
+      whileBlock.execute(state)
+    }
+  }
+
+  override def toString: String = s"while($expression) $whileBlock"
+}
+
 abstract class Statement {
   def execute(state: ProgramState): Unit
 }

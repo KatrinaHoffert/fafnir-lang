@@ -31,7 +31,7 @@ class FafnirParser extends RegexParsers {
   def subtraction: Parser[Expression] = term ~ "-" ~ expression ^^ { case x ~ _ ~ y => SubtractionEvaluable(x, y) }
 
   // Statement components
-  def statement: Parser[Statement] = assignmentStatement | ifStatement | block
+  def statement: Parser[Statement] = assignmentStatement | ifStatement | whileLoop | block
 
   def block: Parser[Block] = "{" ~ statement.* ~ "}" ^^ { case _ ~ statements ~ _ => Block(statements) }
 
@@ -39,7 +39,7 @@ class FafnirParser extends RegexParsers {
     case declaration ~ ident ~ _ ~ expr ~ _ => AssignmentStatement(declaration.isDefined, ident, expr)
   }
 
-  def ifStatement: Parser[IfStatement] = "if" ~ "(" ~ expression ~ ")" ~ block ~ elifSection.* ~ elseSection.? ^^ {
+  def ifStatement: Parser[Statement] = "if" ~ "(" ~ expression ~ ")" ~ block ~ elifSection.* ~ elseSection.? ^^ {
     case _ ~ _ ~ expr ~ _ ~ ifBlock ~ elifSec ~ elseSec => IfStatement(expr, ifBlock, elifSec, elseSec)
   }
 
@@ -49,6 +49,10 @@ class FafnirParser extends RegexParsers {
 
   def elseSection: Parser[Block] = "else" ~ block ^^ {
     case _ ~ elseBlock => elseBlock
+  }
+
+  def whileLoop: Parser[Statement] = "while" ~ "(" ~ expression ~ ")" ~ block ^^ {
+    case _ ~ _ ~ expr ~ _ ~ whileBlock => WhileLoop(expr, whileBlock)
   }
 
   // Program is a list of statements
