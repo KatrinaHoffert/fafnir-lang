@@ -140,7 +140,7 @@ class ProgramTest extends FunSuite {
     for(p <- programs) {
       val programWithDecalaredVariable = "var a = 0;\n" + p
       parser.parse(parser.program, programWithDecalaredVariable) match {
-        case parser.Success(matched, _) =>
+        case parser.Success(matched: Program, _) =>
           val state = matched.execute()
           assert(state.variables.allVariables("a") === IntValue(1), s"Program: $programWithDecalaredVariable")
         case parser.Failure(msg, _) => fail(s"Parse failure: $msg; Program: $programWithDecalaredVariable")

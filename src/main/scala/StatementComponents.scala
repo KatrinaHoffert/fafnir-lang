@@ -29,6 +29,10 @@ case class AssignmentStatement(declaration: Boolean, identifier: Identifier, exp
 
 case class FunctionDeclaration(identifier: Identifier, args: List[Identifier], body: Block) extends Statement {
   override def execute(state: ProgramState): Unit = {
+    if(state.variables.contains(identifier.name)) {
+      throw new Exception(s"Cannot assign new function to existing variable $identifier")
+    }
+
     state.variables(identifier.name) = FunctionValue(args, body.statements)
   }
 

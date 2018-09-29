@@ -15,7 +15,7 @@ class StatementTest extends FunSuite {
 
     for(statement <- statements) {
       parser.parse(parser.statement, statement) match {
-        case parser.Success(matched, _) => matched.execute(state)
+        case parser.Success(matched: Statement, _) => matched.execute(state)
         case parser.Failure(msg, _) => fail(s"Parse failure for input $statement: $msg")
         case parser.Error(msg, _) => fail(s"Parse error for input $statement: $msg")
       }
@@ -33,11 +33,33 @@ class StatementTest extends FunSuite {
     val parser = new FafnirParser()
     val state = new ProgramState()
     parser.parse(parser.statement, "x = 123;") match {
-      case parser.Success(matched, _) =>
+      case parser.Success(matched: Statement, _) =>
         val intercepted = intercept[Exception] {
           matched.execute(state)
         }
         assert(intercepted.getMessage === "Assignment to undeclared variable x")
+      case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
+      case parser.Error(msg, _) => fail(s"Parse error: $msg")
+    }
+  }
+
+  test("Functions cannot be declared multiple times") {
+    val parser = new FafnirParser()
+    val state = new ProgramState()
+    parser.parse(parser.statement, "func foo() {}") match {
+      case parser.Success(matched: Statement, _) =>
+        matched.execute(state)
+        assert(state.variables.contains("foo"), "First declaration should succeed")
+      case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
+      case parser.Error(msg, _) => fail(s"Parse error: $msg")
+    }
+
+    parser.parse(parser.statement, "func foo(bar) {}") match {
+      case parser.Success(matched: Statement, _) =>
+        val intercepted = intercept[Exception] {
+          matched.execute(state)
+        }
+        assert(intercepted.getMessage === "Cannot assign new function to existing variable foo")
       case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
       case parser.Error(msg, _) => fail(s"Parse error: $msg")
     }
