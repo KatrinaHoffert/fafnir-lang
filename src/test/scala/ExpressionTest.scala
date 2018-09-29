@@ -1,6 +1,6 @@
 import org.scalatest.FunSuite
 
-class ExpressionTest extends FunSuite {
+class ExpressionTest extends TestBase {
   test("Expressions evaluate to expected values") {
     val parser = new FafnirParser()
     val state = new ProgramState()
@@ -21,10 +21,8 @@ class ExpressionTest extends FunSuite {
     )
 
     for(input_output <- inputs_to_outputs) {
-      parser.parse(parser.expression, input_output._1) match {
-        case parser.Success(matched: Expression, _) => assert(matched.evaluate(state) === input_output._2)
-        case parser.Failure(msg, _) => fail(s"Parse failure for input ${input_output._1}: $msg")
-        case parser.Error(msg, _) => fail(s"Parse error for input ${input_output._1}: $msg")
+      doParse[Expression](parser, parser.expression, input_output._1) { matched =>
+        assert(matched.evaluate(state) === input_output._2)
       }
     }
   }
@@ -39,10 +37,8 @@ class ExpressionTest extends FunSuite {
     )
 
     for(input_output <- inputs_to_outputs) {
-      parser.parse(parser.expression, input_output._1) match {
-        case parser.Success(matched, _) => assert(matched.toString === input_output._2)
-        case parser.Failure(msg, _) => fail(s"Parse failure for input ${input_output._1}: $msg")
-        case parser.Error(msg, _) => fail(s"Parse error for input ${input_output._1}: $msg")
+      doParse[Expression](parser, parser.expression, input_output._1) { matched =>
+        assert(matched.toString === input_output._2)
       }
     }
   }

@@ -1,6 +1,6 @@
 import org.scalatest.FunSuite
 
-class ProgramTest extends FunSuite {
+class ProgramTest extends TestBase {
   test("Programs produce the correct final state") {
     val parser = new FafnirParser()
 
@@ -55,22 +55,19 @@ class ProgramTest extends FunSuite {
       "renamedFoo" -> List("a", "b"),
     )
 
-    parser.parse(parser.program, program) match {
-      case parser.Success(matched: Program, _) =>
-        val state = matched.execute()
+    doParse[Program](parser, parser.program, program) { matched =>
+      val state = matched.execute()
 
-        // We want to compare functions and non-function variables separately because functions aren't really
-        // comparable (so we'll just compare the name and argument list).
-        val variablesMap = state.variables.allVariables
-        val (functionVariables, nonFunctionVariables) = variablesMap.partition(_._2.isInstanceOf[FunctionValue])
-        val functionVariablesToArgs = functionVariables.map({
-          case (name, value) => (name, value.asInstanceOf[FunctionValue].args.map(_.name))
-        })
+      // We want to compare functions and non-function variables separately because functions aren't really
+      // comparable (so we'll just compare the name and argument list).
+      val variablesMap = state.variables.allVariables
+      val (functionVariables, nonFunctionVariables) = variablesMap.partition(_._2.isInstanceOf[FunctionValue])
+      val functionVariablesToArgs = functionVariables.map({
+        case (name, value) => (name, value.asInstanceOf[FunctionValue].args.map(_.name))
+      })
 
-        assert(nonFunctionVariables === expectedVariables)
-        assert(functionVariablesToArgs === expectedFunctions)
-      case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
-      case parser.Error(msg, _) => fail(s"Parse error: $msg")
+      assert(nonFunctionVariables === expectedVariables)
+      assert(functionVariablesToArgs === expectedFunctions)
     }
   }
 
@@ -139,12 +136,9 @@ class ProgramTest extends FunSuite {
 
     for(p <- programs) {
       val programWithDecalaredVariable = "var a = 0;\n" + p
-      parser.parse(parser.program, programWithDecalaredVariable) match {
-        case parser.Success(matched: Program, _) =>
-          val state = matched.execute()
-          assert(state.variables.allVariables("a") === IntValue(1), s"Program: $programWithDecalaredVariable")
-        case parser.Failure(msg, _) => fail(s"Parse failure: $msg; Program: $programWithDecalaredVariable")
-        case parser.Error(msg, _) => fail(s"Parse error: $msg; Program: $programWithDecalaredVariable")
+      doParse[Program](parser, parser.program, programWithDecalaredVariable) { matched =>
+        val state = matched.execute()
+        assert(state.variables.allVariables("a") === IntValue(1), s"Program: $programWithDecalaredVariable")
       }
     }
   }
@@ -199,10 +193,8 @@ class ProgramTest extends FunSuite {
         |}
       """.stripMargin.trim
 
-    parser.parse(parser.program, program) match {
-      case parser.Success(matched, _) => assert(matched.toString === expectedOutput)
-      case parser.Failure(msg, _) => fail(s"Parse failure: $msg")
-      case parser.Error(msg, _) => fail(s"Parse error: $msg")
+    doParse[Program](parser, parser.program, program) { matched =>
+      assert(matched.toString === expectedOutput)
     }
   }
 }
