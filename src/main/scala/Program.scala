@@ -91,6 +91,7 @@ class Scopes() {
     * Creates a new frame and a scope within that.
     */
   def enterFrame(): Unit = {
+    if(frameAndScopeStack.length > Constants.maxFrames) throw new IllegalStateException("Max frames exceeded")
     frameAndScopeStack.prepend(collection.mutable.ListBuffer())
     frameAndScopeStack.head.prepend(collection.mutable.Map[String, ValueInstance]())
   }

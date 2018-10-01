@@ -253,6 +253,24 @@ class ProgramTest extends TestBase {
     }
   }
 
+  test("Infinite recursion is caught") {
+    val parser = new FafnirParser()
+    val program =
+      """
+        |func infinite() {
+        |  infinite();
+        |}
+        |infinite();
+      """.stripMargin
+
+    doParse[Program](parser, parser.program, program) { matched =>
+      val intercepted = intercept[FafnirRuntimeException] {
+        matched.execute()
+      }
+      assert(intercepted.toString == "Runtime error at 3.3: Max recursion depth exceeded in function infinite")
+    }
+  }
+
   test("Void types are used when functions don't return a value") {
     val parser = new FafnirParser()
     val program =

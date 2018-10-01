@@ -104,7 +104,14 @@ case class FunctionValue(identifier: Identifier, parameters: List[Identifier], b
         s"${arguments.length} were provided")
     }
 
-    state.variables.enterFrame()
+    // Deal with infinite recursion here
+    try {
+      state.variables.enterFrame()
+    }
+    catch {
+      case ex: IllegalStateException => throw new FafnirOperationException(s"Max recursion depth exceeded in function ${identifier.name}")
+    }
+
     for((variableName, variableValue) <- parameters.zip(arguments)) {
       state.variables.setFrameVariable(variableName.name, variableValue)
     }
