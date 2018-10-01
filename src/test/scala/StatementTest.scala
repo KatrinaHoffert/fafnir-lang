@@ -5,9 +5,9 @@ class StatementTest extends TestBase {
 
     // Input -> expected evaluation
     val statements = Seq(
-      "var x = 4 + (3 - 1) * 2;",
-      "var y = 9;",
-      "var _Abc123 = \"Hello\" + \" world!\";",
+      "var x: Int = 4 + (3 - 1) * 2;",
+      "var y: Int = 9;",
+      "var _Abc123: String = \"Hello\" + \" world!\";",
       "y = 10;"
     )
 
@@ -43,7 +43,7 @@ class StatementTest extends TestBase {
     val state = new ProgramState()
     state.variables("x") = IntValue(123)
 
-    doParse[Statement](parser, parser.statement, "var x = 456;") { matched =>
+    doParse[Statement](parser, parser.statement, "var x: Int = 456;") { matched =>
       val intercepted = intercept[FafnirRuntimeException] {
         matched.execute(state)
       }
@@ -72,7 +72,7 @@ class StatementTest extends TestBase {
 
     // Input -> expected evaluation
     val inputsToOutputs = Seq(
-      ("var x=123+4;", "var x = 123 + 4;"),
+      ("var x:Int=123+4;", "var x: Int = 123 + 4;"),
       ("x=123+4;", "x = 123 + 4;"),
     )
 

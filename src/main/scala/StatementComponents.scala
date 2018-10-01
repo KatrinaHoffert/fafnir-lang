@@ -17,20 +17,24 @@ case class Block(statements: List[Statement]) extends Statement {
     s"{\n$indentedStatementLines\n}"
   }
 }
-
-case class AssignmentStatement(declaration: Boolean, identifier: Identifier, expression: Expression) extends Statement {
+case class AssignmentStatement(declaringType: Option[Identifier], identifier: Identifier, expression: Expression) extends Statement {
   override def execute(state: ProgramState): Unit = {
     val variableExists = state.variables.contains(identifier.name)
-    if(!variableExists && !declaration) {
+    if(!variableExists && declaringType.isEmpty) {
       throw new FafnirRuntimeException(identifier, s"Assignment to undeclared variable $identifier")
     }
-    else if(variableExists && declaration) {
+    else if(variableExists && declaringType.isDefined) {
       throw new FafnirRuntimeException(identifier, s"Duplicate assignment to variable $identifier")
     }
+
     state.variables(identifier.name) = expression.evaluate(state)
   }
 
-  override def toString: String = s"${if(declaration) "var " else ""}$identifier = $expression;"
+  override def toString: String = {
+    val leadingVar = if(declaringType.isDefined) "var " else ""
+    val typeDefinition = if(declaringType.isDefined) s": ${declaringType.get}" else ""
+    s"$leadingVar$identifier$typeDefinition = $expression;"
+  }
 }
 
 case class FunctionDeclaration(identifier: Identifier, parameters: List[Identifier], body: Block) extends Statement {

@@ -4,25 +4,25 @@ class ProgramTest extends TestBase {
     val program =
       """
         |// Comment
-        |var x = 4 + (3 - 1) * 2; // End of line comments work too
+        |var x: Int = 4 + (3 - 1) * 2; // End of line comments work too
         |if(x)
         |{
-        |  var y = 2;
+        |  var y: Int = 2;
         |  x = x + y;
         |}
         |
         |if(x - 10) {
-        |  var notReached = "foo";
+        |  var notReached: String = "foo";
         |}
         |else { x = x + 1; }
         |
-        |var z = "Something new";
+        |var z: String = "Something new";
         |{
-        |  var local = "Will be out of scope at end of program";
+        |  var local: String = "Will be out of scope at end of program";
         |  z = z + " or old";
         |}
         |
-        |var loopCount = 0;
+        |var loopCount: Int = 0;
         |while(loopCount - 5) {
         |  loopCount = loopCount + 1;
         |}
@@ -31,17 +31,17 @@ class ProgramTest extends TestBase {
         |while(0) { loopCount = -1; }
         |
         |// Testing function definitions
-        |var returnValue = 0;
+        |var returnValue: Int = 0;
         |func foo(a, b) {
         |  returnValue = a + b;
         |}
         |foo(5, 7);
-        |var renamedFoo = foo;
+        |var renamedFoo: Function = foo;
         |if(renamedFoo(returnValue, 1)) {} // Evaluating function in an expression
         |
         |// Returning functions
         |func square(a) { return a * a; }
-        |var thirty = square(5) + 5;
+        |var thirty: Int = square(5) + 5;
       """.stripMargin
 
     val expectedVariables = Map(
@@ -138,7 +138,7 @@ class ProgramTest extends TestBase {
     )
 
     for(p <- programs) {
-      val programWithDecalaredVariable = "var a = 0;\n" + p
+      val programWithDecalaredVariable = "var a: Int = 0;\n" + p
       doParse[Program](parser, parser.program, programWithDecalaredVariable) { matched =>
         val state = matched.execute()
         assert(state.variables.allVariables("a") === IntValue(1), s"Program: $programWithDecalaredVariable")
@@ -151,8 +151,8 @@ class ProgramTest extends TestBase {
 
     val program =
       """
-        |var x = 4 + (3 - 1) * 2;
-        |{var y = 9;}
+        |var x: Int = 4 + (3 - 1) * 2;
+        |{var y:Int = 9;}
         |y = 10;
         |if (1) {
         |  if(0)
@@ -169,15 +169,15 @@ class ProgramTest extends TestBase {
         |    if(1){ a = 1; }
         |  }
         |}
-        |func someFunction (a, b) { var local = a + b; }
+        |func someFunction (a, b) { var local : Int = a + b; }
         |someFunction(1+2, 3);
       """.stripMargin
 
     val expectedOutput =
       """
-        |var x = 4 + ((3 - 1) * 2);
+        |var x: Int = 4 + ((3 - 1) * 2);
         |{
-        |  var y = 9;
+        |  var y: Int = 9;
         |}
         |y = 10;
         |if(1) {
@@ -197,7 +197,7 @@ class ProgramTest extends TestBase {
         |  }
         |}
         |func someFunction(a, b) {
-        |  var local = a + b;
+        |  var local: Int = a + b;
         |}
         |someFunction(1 + 2, 3);
       """.stripMargin.trim
@@ -227,13 +227,13 @@ class ProgramTest extends TestBase {
         |  }
         |}
         |
-        |var f0 = fibonacci(0);
-        |var f1 = fibonacci(1);
-        |var f2 = fibonacci(2);
-        |var f3 = fibonacci(3);
-        |var f4 = fibonacci(4);
-        |var f5 = fibonacci(5);
-        |var f6 = fibonacci(6);
+        |var f0: Int = fibonacci(0);
+        |var f1: Int = fibonacci(1);
+        |var f2: Int = fibonacci(2);
+        |var f3: Int = fibonacci(3);
+        |var f4: Int = fibonacci(4);
+        |var f5: Int = fibonacci(5);
+        |var f6: Int = fibonacci(6);
       """.stripMargin
 
     val expectedVariables = Map(
@@ -277,16 +277,16 @@ class ProgramTest extends TestBase {
       """
         |func mixup() { return 1 + 1; } // So we can see if return values are mishandled
         |func noReturn() {
-        |  var a = 123;
+        |  var a: Int = 123;
         |}
         |func returnNoExpression() {
-        |  var a = 123;
+        |  var a: Int = 123;
         |  return;
         |}
-        |var expectedValue = mixup();
-        |var noReturnValue = noReturn();
+        |var expectedValue: Int = mixup();
+        |var noReturnValue: Void = noReturn();
         |expectedValue = expectedValue + mixup();
-        |var returnNoExpressionValue = returnNoExpression();
+        |var returnNoExpressionValue: Void = returnNoExpression();
         |expectedValue = expectedValue + mixup();
       """.stripMargin
 
