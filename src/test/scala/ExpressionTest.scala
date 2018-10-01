@@ -8,7 +8,7 @@ class ExpressionTest extends TestBase {
     state.variables("myVar") = StringValue("abc")
 
     // Input -> expected evaluation
-    val inputs_to_outputs = Seq(
+    val inputsToOutputs = Seq(
       ("4 + (3 - 1) * 2", IntValue(8)),
       ("\"hello\" * 2", StringValue("hellohello")),
       ("\"hello\" + \" \" + \"world\"", StringValue("hello world")),
@@ -20,9 +20,9 @@ class ExpressionTest extends TestBase {
       ("myVar * (foo - 4)", StringValue("abcabcabc")),
     )
 
-    for(input_output <- inputs_to_outputs) {
-      doParse[Expression](parser, parser.expression, input_output._1) { matched =>
-        assert(matched.evaluate(state) === input_output._2)
+    for(inputOutput <- inputsToOutputs) {
+      doParse[Expression](parser, parser.expression, inputOutput._1) { matched =>
+        assert(matched.evaluate(state) === inputOutput._2)
       }
     }
   }
@@ -31,14 +31,37 @@ class ExpressionTest extends TestBase {
     val parser = new FafnirParser()
 
     // Input -> expected evaluation
-    val inputs_to_outputs = Seq(
+    val inputsToOutputs = Seq(
       ("4+3/(2-1)", "4 + (3 / (2 - 1))"),
       ("\"hello\"   * 2   ", "(\"hello\" * 2)"),
     )
 
-    for(input_output <- inputs_to_outputs) {
-      doParse[Expression](parser, parser.expression, input_output._1) { matched =>
-        assert(matched.toString === input_output._2)
+    for(inputOutput <- inputsToOutputs) {
+      doParse[Expression](parser, parser.expression, inputOutput._1) { matched =>
+        assert(matched.toString === inputOutput._2)
+      }
+    }
+  }
+
+  test("Unsupported operations get the expected error message") {
+    val parser = new FafnirParser()
+    val state = new ProgramState()
+    state.variables("predefinedInt") = IntValue(123)
+
+    // Input -> error message
+    val inputsToErrorMessages = Seq(
+      ("\"hello\" + 2", "Runtime error at 1.11: Operation + is not defined on types String and Int"),
+      ("\n\n(\"hi\" + \"hi\") / 2", "Runtime error at 3.17: Operation / is not defined on types String and Int"),
+      ("5 / 0\n\n", "Runtime error at 1.5: Division by zero"),
+      ("predefinedInt()", "Runtime error at 1.1: Type Int is not callable"),
+    )
+
+    for(inputToErrorMessage <- inputsToErrorMessages) {
+      doParse[Expression](parser, parser.expression, inputToErrorMessage._1) { matched =>
+        val intercepted = intercept[FafnirRuntimeException] {
+          matched.evaluate(state)
+        }
+        assert(intercepted.toString === inputToErrorMessage._2)
       }
     }
   }

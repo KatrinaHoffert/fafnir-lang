@@ -41,7 +41,10 @@ case class IntValue(value: Int) extends ValueInstance {
 
   override def /(that: ValueInstance): ValueInstance = {
     that match {
-      case intThat: IntValue => IntValue(value / intThat.value)
+      case intThat: IntValue => {
+        if(intThat.value == 0) throw new FafnirOperationException("Division by zero")
+        IntValue(value / intThat.value)
+      }
       case _ => unsupportedOperation("/", that)
     }
   }

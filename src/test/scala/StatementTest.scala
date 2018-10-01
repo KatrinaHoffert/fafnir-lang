@@ -58,14 +58,14 @@ class StatementTest extends TestBase {
     val parser = new FafnirParser()
 
     // Input -> expected evaluation
-    val inputs_to_outputs = Seq(
+    val inputsToOutputs = Seq(
       ("var x=123+4;", "var x = 123 + 4;"),
       ("x=123+4;", "x = 123 + 4;"),
     )
 
-    for(input_output <- inputs_to_outputs) {
-      doParse[Statement](parser, parser.statement, input_output._1) { matched =>
-        assert(matched.toString === input_output._2)
+    for(inputOutput <- inputsToOutputs) {
+      doParse[Statement](parser, parser.statement, inputOutput._1) { matched =>
+        assert(matched.toString === inputOutput._2)
       }
     }
   }
