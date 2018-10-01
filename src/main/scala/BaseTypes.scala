@@ -1,12 +1,21 @@
+/**
+  * Represents an instance of a value (ie, of a variable or literal). Values have a type and various forms of
+  * behavior.
+  */
 abstract class ValueInstance {
   val typeName: String
+
   def +(that: ValueInstance): ValueInstance = unsupportedOperation("+", that)
   def -(that: ValueInstance): ValueInstance = unsupportedOperation("-", that)
   def *(that: ValueInstance): ValueInstance = unsupportedOperation("*", that)
   def /(that: ValueInstance): ValueInstance = unsupportedOperation("/", that)
-  def call(state: ProgramState, argValues: List[ValueInstance]): ValueInstance = {
+  def call(state: ProgramState, arguments: List[ValueInstance]): ValueInstance = {
     throw new FafnirOperationException(s"Type $typeName is not callable")
   }
+
+  /**
+    * @return Whether or not the variable should be considered truthy for the purposes of conditionals.
+    */
   def isTruthy: Boolean = true
 
   protected def unsupportedOperation(op: String, that: ValueInstance): Nothing = {
@@ -76,22 +85,27 @@ case class StringValue(value: String) extends ValueInstance {
   override def toString: String = s""""$value""""
 }
 
+/**
+  * The Void type is just used so that we can correctly handle someone trying to do an operation on the result of a
+  * function that doesn't return anything (technically, it returns this).
+  */
 case class VoidValue() extends ValueInstance {
   override val typeName: String = "Void"
   override def isTruthy: Boolean = false
   override def toString: String = "Void"
 }
 
-case class FunctionValue(args: List[Identifier], body: List[Statement]) extends ValueInstance {
+case class FunctionValue(identifier: Identifier, parameters: List[Identifier], body: List[Statement]) extends ValueInstance {
   override val typeName: String = "Function"
 
-  override def call(state: ProgramState, argValues: List[ValueInstance]): ValueInstance = {
-    if(args.length != argValues.length) {
-      throw new Exception(s"Function takes ${args.length} arguments but ${argValues.length} were provided.")
+  override def call(state: ProgramState, arguments: List[ValueInstance]): ValueInstance = {
+    if(parameters.length != arguments.length) {
+      throw new FafnirOperationException(s"Function ${identifier.name} takes ${parameters.length} arguments but " +
+        s"${arguments.length} were provided")
     }
 
     state.variables.enterFrame()
-    for((variableName, variableValue) <- args.zip(argValues)) {
+    for((variableName, variableValue) <- parameters.zip(arguments)) {
       state.variables.setFrameVariable(variableName.name, variableValue)
     }
 
@@ -108,5 +122,5 @@ case class FunctionValue(args: List[Identifier], body: List[Statement]) extends 
     state.returnValue
   }
 
-  override def toString: String = "Function"
+  override def toString: String = s"Function ${identifier.name}"
 }

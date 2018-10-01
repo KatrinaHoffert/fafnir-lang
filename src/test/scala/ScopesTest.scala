@@ -1,6 +1,4 @@
-import org.scalatest.FunSuite
-
-class ScopesTest extends FunSuite {
+class ScopesTest extends TestBase {
   test("Variables are resolvable within their scopes (but not others)") {
     val scopes = new Scopes()
     scopes("foo") = IntValue(1)

@@ -96,12 +96,12 @@ class FafnirParser extends RegexParsers {
 
   // Functions
   def functionDefinition: Parser[Statement] = positioned {
-    "func" ~ identifier ~ argumentNameList ~ block ^^ {
-      case _ ~ identifier ~ args ~ body => FunctionDeclaration(identifier, args, body)
+    "func" ~ identifier ~ parameterList ~ block ^^ {
+      case _ ~ identifier ~ parameters ~ body => FunctionDeclaration(identifier, parameters, body)
     }
   }
 
-  def argumentNameList: Parser[List[Identifier]] = "(" ~ repsep(identifier, ",") ~ ")" ^^ { case _ ~ args ~ _ => args }
+  def parameterList: Parser[List[Identifier]] = "(" ~ repsep(identifier, ",") ~ ")" ^^ { case _ ~ args ~ _ => args }
 
   def functionCallStatement: Parser[Statement] = positioned {
     functionCall ~ ";" ^^ { case func ~ _ => FunctionCallStatement(func) }

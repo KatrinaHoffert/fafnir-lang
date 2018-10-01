@@ -1,5 +1,3 @@
-import org.scalatest.FunSuite
-
 class StatementTest extends TestBase {
   test("Statements modify program state correctly") {
     val parser = new FafnirParser()

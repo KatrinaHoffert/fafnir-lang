@@ -1,5 +1,3 @@
-import org.scalatest.FunSuite
-
 class ProgramTest extends TestBase {
   test("Programs produce the correct final state") {
     val parser = new FafnirParser()
@@ -68,7 +66,7 @@ class ProgramTest extends TestBase {
       val variablesMap = state.variables.allVariables
       val (functionVariables, nonFunctionVariables) = variablesMap.partition(_._2.isInstanceOf[FunctionValue])
       val functionVariablesToArgs = functionVariables.map({
-        case (name, value) => (name, value.asInstanceOf[FunctionValue].args.map(_.name))
+        case (name, value) => (name, value.asInstanceOf[FunctionValue].parameters.map(_.name))
       })
 
       assert(nonFunctionVariables === expectedVariables)

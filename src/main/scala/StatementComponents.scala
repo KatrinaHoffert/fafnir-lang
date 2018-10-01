@@ -29,16 +29,16 @@ case class AssignmentStatement(declaration: Boolean, identifier: Identifier, exp
   override def toString: String = s"${if(declaration) "var " else ""}$identifier = $expression;"
 }
 
-case class FunctionDeclaration(identifier: Identifier, args: List[Identifier], body: Block) extends Statement {
+case class FunctionDeclaration(identifier: Identifier, parameters: List[Identifier], body: Block) extends Statement {
   override def execute(state: ProgramState): Unit = {
     if(state.variables.contains(identifier.name)) {
       throw new FafnirRuntimeException(identifier, s"Cannot assign new function to existing variable $identifier")
     }
 
-    state.variables(identifier.name) = FunctionValue(args, body.statements)
+    state.variables(identifier.name) = FunctionValue(identifier, parameters, body.statements)
   }
 
-  override def toString: String = s"func $identifier(${args.mkString(", ")}) $body"
+  override def toString: String = s"func $identifier(${parameters.mkString(", ")}) $body"
 }
 
 case class FunctionCallStatement(function: FunctionCall) extends Statement {

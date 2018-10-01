@@ -1,5 +1,3 @@
-import org.scalatest.FunSuite
-
 class ExpressionTest extends TestBase {
   test("Expressions evaluate to expected values") {
     val parser = new FafnirParser()
@@ -47,6 +45,7 @@ class ExpressionTest extends TestBase {
     val parser = new FafnirParser()
     val state = new ProgramState()
     state.variables("predefinedInt") = IntValue(123)
+    state.variables("someFunction") = FunctionValue(Identifier("someFunction"), List(Identifier("a")), List())
 
     // Input -> error message
     val inputsToErrorMessages = Seq(
@@ -54,6 +53,8 @@ class ExpressionTest extends TestBase {
       ("\n\n(\"hi\" + \"hi\") / 2", "Runtime error at 3.17: Operation / is not defined on types String and Int"),
       ("5 / 0\n\n", "Runtime error at 1.5: Division by zero"),
       ("predefinedInt()", "Runtime error at 1.1: Type Int is not callable"),
+      ("someFunction()", "Runtime error at 1.1: Function someFunction takes 1 arguments but 0 were provided"),
+      ("someFunction(1, 2)", "Runtime error at 1.1: Function someFunction takes 1 arguments but 2 were provided"),
     )
 
     for(inputToErrorMessage <- inputsToErrorMessages) {
