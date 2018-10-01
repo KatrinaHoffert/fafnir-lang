@@ -20,8 +20,12 @@ case class Block(statements: List[Statement]) extends Statement {
 
 case class AssignmentStatement(declaration: Boolean, identifier: Identifier, expression: Expression) extends Statement {
   override def execute(state: ProgramState): Unit = {
-    if(!state.variables.contains(identifier.name) && !declaration) {
+    val variableExists = state.variables.contains(identifier.name)
+    if(!variableExists && !declaration) {
       throw new FafnirRuntimeException(identifier, s"Assignment to undeclared variable $identifier")
+    }
+    else if(variableExists && declaration) {
+      throw new FafnirRuntimeException(identifier, s"Duplicate assignment to variable $identifier")
     }
     state.variables(identifier.name) = expression.evaluate(state)
   }

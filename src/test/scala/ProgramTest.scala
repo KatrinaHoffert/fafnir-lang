@@ -302,20 +302,4 @@ class ProgramTest extends TestBase {
       assert(nonFunctionVariables === expectedVariables)
     }
   }
-
-  test("Invalid operations have correct line and column numbers") {
-    val parser = new FafnirParser()
-    val program =
-      """
-        |var x = 123;
-        |y = 456; // Illegal
-      """.stripMargin.trim
-
-    doParse[Program](parser, parser.program, program) { matched =>
-      val intercepted = intercept[FafnirRuntimeException] {
-        matched.execute()
-      }
-      assert(intercepted.toString == "Runtime error at 2.1: Assignment to undeclared variable y")
-    }
-  }
 }
