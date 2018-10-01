@@ -49,7 +49,7 @@ class Scopes() {
         // Not found locally, so search the global scope
         globalScopeStack.find(_.contains(name)) match {
           case Some(scope) => scope(name)
-          case None => throw new Exception(s"Variable $name is not defined")
+          case None => throw new NoSuchElementException(s"Variable $name is not defined")
         }
     }
   }

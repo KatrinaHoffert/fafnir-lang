@@ -1,3 +1,5 @@
+import scala.util.parsing.input.Positional
+
 case class Block(statements: List[Statement]) extends Statement {
   override def execute(state: ProgramState): Unit = {
     state.variables.enterScope()
@@ -19,7 +21,7 @@ case class Block(statements: List[Statement]) extends Statement {
 case class AssignmentStatement(declaration: Boolean, identifier: Identifier, expression: Expression) extends Statement {
   override def execute(state: ProgramState): Unit = {
     if(!state.variables.contains(identifier.name) && !declaration) {
-      throw new Exception(s"Assignment to undeclared variable $identifier")
+      throw new FafnirRuntimeException(identifier, s"Assignment to undeclared variable $identifier")
     }
     state.variables(identifier.name) = expression.evaluate(state)
   }
@@ -30,7 +32,7 @@ case class AssignmentStatement(declaration: Boolean, identifier: Identifier, exp
 case class FunctionDeclaration(identifier: Identifier, args: List[Identifier], body: Block) extends Statement {
   override def execute(state: ProgramState): Unit = {
     if(state.variables.contains(identifier.name)) {
-      throw new Exception(s"Cannot assign new function to existing variable $identifier")
+      throw new FafnirRuntimeException(identifier, s"Cannot assign new function to existing variable $identifier")
     }
 
     state.variables(identifier.name) = FunctionValue(args, body.statements)
@@ -51,7 +53,7 @@ case class FunctionCallStatement(function: FunctionCall) extends Statement {
 case class ReturnStatement(expression: Option[Expression]) extends Statement {
   override def execute(state: ProgramState): Unit = {
     if(!state.variables.inFrame) {
-      throw new Exception("Cannot return when not in a function.")
+      throw new FafnirRuntimeException(this, "Cannot return when not in a function.")
     }
 
     val returnValue = expression.map(_.evaluate(state))
@@ -113,6 +115,6 @@ case class WhileLoop(expression: Expression, whileBlock: Block) extends Statemen
   override def toString: String = s"while($expression) $whileBlock"
 }
 
-abstract class Statement {
+abstract class Statement extends Positional {
   def execute(state: ProgramState): Unit
 }

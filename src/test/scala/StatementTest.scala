@@ -31,7 +31,7 @@ class StatementTest extends TestBase {
     val parser = new FafnirParser()
     val state = new ProgramState()
     doParse[Statement](parser, parser.statement, "x = 123;") { matched =>
-      val intercepted = intercept[Exception] {
+      val intercepted = intercept[FafnirRuntimeException] {
         matched.execute(state)
       }
       assert(intercepted.getMessage === "Assignment to undeclared variable x")
@@ -47,7 +47,7 @@ class StatementTest extends TestBase {
       assert(state.variables.contains("foo"), "First declaration should succeed")
     }
     doParse[Statement](parser, parser.statement, "func foo(bar) {}") { matched =>
-      val intercepted = intercept[Exception] {
+      val intercepted = intercept[FafnirRuntimeException] {
         matched.execute(state)
       }
       assert(intercepted.getMessage === "Cannot assign new function to existing variable foo")

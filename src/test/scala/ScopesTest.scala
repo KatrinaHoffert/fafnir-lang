@@ -99,7 +99,7 @@ class ScopesTest extends FunSuite {
   }
 
   def assertVariableNotDefined(scopes: Scopes, variableName: String): Unit = {
-    val intercepted = intercept[Exception] {
+    val intercepted = intercept[NoSuchElementException] {
       scopes(variableName)
     }
     assert(intercepted.getMessage === s"Variable $variableName is not defined")

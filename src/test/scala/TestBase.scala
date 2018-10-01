@@ -17,8 +17,8 @@ abstract class TestBase extends FunSuite {
     parser.parse(componentTyped, input) match {
       case parser.Success(matched, _) =>
         successCase(matched)
-      case parser.Failure(msg, _) => fail(s"Parse failure: $msg\n\nProgram was:\n$input")
-      case parser.Error(msg, _) => fail(s"Parse error: $msg\n\nProgram was:\n$input")
+      case f: parser.Failure => fail(s"$f\n\nProgram was:\n$input")
+      case e: parser.Error => fail(s"$e\n\nProgram was:\n$input")
     }
   }
 }

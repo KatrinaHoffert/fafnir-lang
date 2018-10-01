@@ -1,38 +1,48 @@
 abstract class ValueInstance {
-  def +(that: ValueInstance): ValueInstance = throw new Exception("Not supported type")
-  def -(that: ValueInstance): ValueInstance = throw new Exception("Not supported type")
-  def *(that: ValueInstance): ValueInstance = throw new Exception("Not supported type")
-  def /(that: ValueInstance): ValueInstance = throw new Exception("Not supported type")
-  def call(state: ProgramState, argValues: List[ValueInstance]): ValueInstance = throw new Exception("Not supported type")
+  val typeName: String
+  def +(that: ValueInstance): ValueInstance = unsupportedOperation("+", that)
+  def -(that: ValueInstance): ValueInstance = unsupportedOperation("-", that)
+  def *(that: ValueInstance): ValueInstance = unsupportedOperation("*", that)
+  def /(that: ValueInstance): ValueInstance = unsupportedOperation("/", that)
+  def call(state: ProgramState, argValues: List[ValueInstance]): ValueInstance = {
+    throw new FafnirOperationException(s"Type $typeName is not callable")
+  }
   def isTruthy: Boolean = true
+
+  protected def unsupportedOperation(op: String, that: ValueInstance): Nothing = {
+    throw new FafnirOperationException(s"Operation $op is not defined on types $typeName and ${that.typeName}")
+  }
 }
 
 case class IntValue(value: Int) extends ValueInstance {
+  override val typeName: String = "Int"
+
   override def +(that: ValueInstance): ValueInstance = {
     that match {
       case intThat: IntValue => IntValue(value + intThat.value)
-      case _ => throw new Exception("Not supported type")
+      case _ => unsupportedOperation("+", that)
     }
   }
 
   override def -(that: ValueInstance): ValueInstance = {
     that match {
       case intThat: IntValue => IntValue(value - intThat.value)
-      case _ => throw new Exception("Not supported type")
+      case _ => unsupportedOperation("-", that)
     }
   }
 
   override def *(that: ValueInstance): ValueInstance = {
     that match {
       case intThat: IntValue => IntValue(value * intThat.value)
-      case _ => throw new Exception("Not supported type")
+      case stringThat: StringValue => StringValue(stringThat.value * value)
+      case _ => unsupportedOperation("*", that)
     }
   }
 
   override def /(that: ValueInstance): ValueInstance = {
     that match {
       case intThat: IntValue => IntValue(value / intThat.value)
-      case _ => throw new Exception("Not supported type")
+      case _ => unsupportedOperation("/", that)
     }
   }
 
@@ -42,17 +52,19 @@ case class IntValue(value: Int) extends ValueInstance {
 }
 
 case class StringValue(value: String) extends ValueInstance {
+  override val typeName: String = "String"
+
   override def +(that: ValueInstance): ValueInstance = {
     that match {
       case stringThat: StringValue => StringValue(value + stringThat.value)
-      case _ => throw new Exception("Not supported type")
+      case _ => unsupportedOperation("+", that)
     }
   }
 
   override def *(that: ValueInstance): ValueInstance = {
     that match {
       case intThat: IntValue => StringValue(value * intThat.value)
-      case _ => throw new Exception("Not supported type")
+      case _ => unsupportedOperation("*", that)
     }
   }
 
@@ -62,14 +74,17 @@ case class StringValue(value: String) extends ValueInstance {
 }
 
 case class VoidValue() extends ValueInstance {
+  override val typeName: String = "Void"
   override def isTruthy: Boolean = false
   override def toString: String = "Void"
 }
 
 case class FunctionValue(args: List[Identifier], body: List[Statement]) extends ValueInstance {
+  override val typeName: String = "Function"
+
   override def call(state: ProgramState, argValues: List[ValueInstance]): ValueInstance = {
     if(args.length != argValues.length) {
-      throw new Exception(s"Function takes ${args.length} arguments but only ${argValues.length} were provided.")
+      throw new Exception(s"Function takes ${args.length} arguments but ${argValues.length} were provided.")
     }
 
     state.variables.enterFrame()
