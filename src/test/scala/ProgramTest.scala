@@ -4,25 +4,25 @@ class ProgramTest extends TestBase {
     val program =
       """
         |// Comment
-        |var x = 4 + (3 - 1) * 2; // End of line comments work too
+        |var x: Int = 4 + (3 - 1) * 2; // End of line comments work too
         |if(x)
         |{
-        |  var y = 2;
+        |  var y: Int = 2;
         |  x = x + y;
         |}
         |
         |if(x - 10) {
-        |  var notReached = "foo";
+        |  var notReached: String = "foo";
         |}
         |else { x = x + 1; }
         |
-        |var z = "Something new";
+        |var z: String = "Something new";
         |{
-        |  var local = "Will be out of scope at end of program";
+        |  var local: String = "Will be out of scope at end of program";
         |  z = z + " or old";
         |}
         |
-        |var loopCount = 0;
+        |var loopCount: Int = 0;
         |while(loopCount - 5) {
         |  loopCount = loopCount + 1;
         |}
@@ -31,25 +31,25 @@ class ProgramTest extends TestBase {
         |while(0) { loopCount = -1; }
         |
         |// Testing function definitions
-        |var returnValue = 0;
+        |var returnValue: Int = 0;
         |func foo(a, b) {
         |  returnValue = a + b;
         |}
         |foo(5, 7);
-        |var renamedFoo = foo;
+        |var renamedFoo: Function = foo;
         |if(renamedFoo(returnValue, 1)) {} // Evaluating function in an expression
         |
         |// Returning functions
         |func square(a) { return a * a; }
-        |var thirty = square(5) + 5;
+        |var thirty: Int = square(5) + 5;
       """.stripMargin
 
     val expectedVariables = Map(
-      "x" -> IntValue(11),
-      "z" -> StringValue("Something new or old"),
-      "loopCount" -> IntValue(5),
-      "returnValue" -> IntValue(13),
-      "thirty" -> IntValue(30),
+      "x" -> VariableInfo("Int", IntValue(11)),
+      "z" -> VariableInfo("String", StringValue("Something new or old")),
+      "loopCount" -> VariableInfo("Int", IntValue(5)),
+      "returnValue" -> VariableInfo("Int", IntValue(13)),
+      "thirty" -> VariableInfo("Int", IntValue(30)),
     )
 
     val expectedFunctions = Map(
@@ -64,9 +64,9 @@ class ProgramTest extends TestBase {
       // We want to compare functions and non-function variables separately because functions aren't really
       // comparable (so we'll just compare the name and argument list).
       val variablesMap = state.variables.allVariables
-      val (functionVariables, nonFunctionVariables) = variablesMap.partition(_._2.isInstanceOf[FunctionValue])
+      val (functionVariables, nonFunctionVariables) = variablesMap.partition(_._2.typeName == "Function")
       val functionVariablesToArgs = functionVariables.map({
-        case (name, value) => (name, value.asInstanceOf[FunctionValue].parameters.map(_.name))
+        case (name, value) => (name, value.value.asInstanceOf[FunctionValue].parameters.map(_.name))
       })
 
       assert(nonFunctionVariables === expectedVariables)
@@ -138,10 +138,10 @@ class ProgramTest extends TestBase {
     )
 
     for(p <- programs) {
-      val programWithDecalaredVariable = "var a = 0;\n" + p
+      val programWithDecalaredVariable = "var a: Int = 0;\n" + p
       doParse[Program](parser, parser.program, programWithDecalaredVariable) { matched =>
         val state = matched.execute()
-        assert(state.variables.allVariables("a") === IntValue(1), s"Program: $programWithDecalaredVariable")
+        assert(state.variables.allVariables("a") === VariableInfo("Int", IntValue(1)), s"Program: $programWithDecalaredVariable")
       }
     }
   }
@@ -151,8 +151,8 @@ class ProgramTest extends TestBase {
 
     val program =
       """
-        |var x = 4 + (3 - 1) * 2;
-        |{var y = 9;}
+        |var x: Int = 4 + (3 - 1) * 2;
+        |{var y:Int = 9;}
         |y = 10;
         |if (1) {
         |  if(0)
@@ -169,15 +169,15 @@ class ProgramTest extends TestBase {
         |    if(1){ a = 1; }
         |  }
         |}
-        |func someFunction (a, b) { var local = a + b; }
+        |func someFunction (a, b) { var local : Int = a + b; }
         |someFunction(1+2, 3);
       """.stripMargin
 
     val expectedOutput =
       """
-        |var x = 4 + ((3 - 1) * 2);
+        |var x: Int = 4 + ((3 - 1) * 2);
         |{
-        |  var y = 9;
+        |  var y: Int = 9;
         |}
         |y = 10;
         |if(1) {
@@ -197,7 +197,7 @@ class ProgramTest extends TestBase {
         |  }
         |}
         |func someFunction(a, b) {
-        |  var local = a + b;
+        |  var local: Int = a + b;
         |}
         |someFunction(1 + 2, 3);
       """.stripMargin.trim
@@ -227,28 +227,28 @@ class ProgramTest extends TestBase {
         |  }
         |}
         |
-        |var f0 = fibonacci(0);
-        |var f1 = fibonacci(1);
-        |var f2 = fibonacci(2);
-        |var f3 = fibonacci(3);
-        |var f4 = fibonacci(4);
-        |var f5 = fibonacci(5);
-        |var f6 = fibonacci(6);
+        |var f0: Int = fibonacci(0);
+        |var f1: Int = fibonacci(1);
+        |var f2: Int = fibonacci(2);
+        |var f3: Int = fibonacci(3);
+        |var f4: Int = fibonacci(4);
+        |var f5: Int = fibonacci(5);
+        |var f6: Int = fibonacci(6);
       """.stripMargin
 
     val expectedVariables = Map(
-      "f0" -> IntValue(0),
-      "f1" -> IntValue(1),
-      "f2" -> IntValue(1),
-      "f3" -> IntValue(2),
-      "f4" -> IntValue(3),
-      "f5" -> IntValue(5),
-      "f6" -> IntValue(8),
+      "f0" -> VariableInfo("Int", IntValue(0)),
+      "f1" -> VariableInfo("Int", IntValue(1)),
+      "f2" -> VariableInfo("Int", IntValue(1)),
+      "f3" -> VariableInfo("Int", IntValue(2)),
+      "f4" -> VariableInfo("Int", IntValue(3)),
+      "f5" -> VariableInfo("Int", IntValue(5)),
+      "f6" -> VariableInfo("Int", IntValue(8)),
     )
 
     doParse[Program](parser, parser.program, program) { matched =>
       val state = matched.execute()
-      val nonFunctionVariables = state.variables.allVariables.filter(!_._2.isInstanceOf[FunctionValue])
+      val nonFunctionVariables = state.variables.allVariables.filter(_._2.typeName != "Function")
       assert(nonFunctionVariables === expectedVariables)
     }
   }
@@ -277,28 +277,28 @@ class ProgramTest extends TestBase {
       """
         |func mixup() { return 1 + 1; } // So we can see if return values are mishandled
         |func noReturn() {
-        |  var a = 123;
+        |  var a: Int = 123;
         |}
         |func returnNoExpression() {
-        |  var a = 123;
+        |  var a: Int = 123;
         |  return;
         |}
-        |var expectedValue = mixup();
-        |var noReturnValue = noReturn();
+        |var expectedValue: Int = mixup();
+        |var noReturnValue: Void = noReturn();
         |expectedValue = expectedValue + mixup();
-        |var returnNoExpressionValue = returnNoExpression();
+        |var returnNoExpressionValue: Void = returnNoExpression();
         |expectedValue = expectedValue + mixup();
       """.stripMargin
 
     val expectedVariables = Map(
-      "expectedValue" -> IntValue(6),
-      "noReturnValue" -> VoidValue(),
-      "returnNoExpressionValue" -> VoidValue(),
+      "expectedValue" -> VariableInfo("Int", IntValue(6)),
+      "noReturnValue" -> VariableInfo("Void", VoidValue()),
+      "returnNoExpressionValue" -> VariableInfo("Void", VoidValue()),
     )
 
     doParse[Program](parser, parser.program, program) { matched =>
       val state = matched.execute()
-      val nonFunctionVariables = state.variables.allVariables.filter(!_._2.isInstanceOf[FunctionValue])
+      val nonFunctionVariables = state.variables.allVariables.filter(_._2.typeName != "Function")
       assert(nonFunctionVariables === expectedVariables)
     }
   }

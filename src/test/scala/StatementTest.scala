@@ -5,9 +5,9 @@ class StatementTest extends TestBase {
 
     // Input -> expected evaluation
     val statements = Seq(
-      "var x = 4 + (3 - 1) * 2;",
-      "var y = 9;",
-      "var _Abc123 = \"Hello\" + \" world!\";",
+      "var x: Int = 4 + (3 - 1) * 2;",
+      "var y: Int = 9;",
+      "var _Abc123: String = \"Hello\" + \" world!\";",
       "y = 10;"
     )
 
@@ -18,9 +18,9 @@ class StatementTest extends TestBase {
     }
 
     val expectedVariables = Map(
-      "x" -> IntValue(8),
-      "y" -> IntValue(10),
-      "_Abc123" -> StringValue("Hello world!")
+      "x" -> VariableInfo("Int", IntValue(8)),
+      "y" -> VariableInfo("Int", IntValue(10)),
+      "_Abc123" -> VariableInfo("String", StringValue("Hello world!"))
     )
     assert(state.variables.allVariables === expectedVariables)
   }
@@ -41,13 +41,27 @@ class StatementTest extends TestBase {
     // exist globally.
     val parser = new FafnirParser()
     val state = new ProgramState()
-    state.variables("x") = IntValue(123)
+    state.variables("x") = VariableInfo("Int", IntValue(123))
 
-    doParse[Statement](parser, parser.statement, "var x = 456;") { matched =>
+    doParse[Statement](parser, parser.statement, "var x: Int = 456;") { matched =>
       val intercepted = intercept[FafnirRuntimeException] {
         matched.execute(state)
       }
       assert(intercepted.toString == "Runtime error at 1.5: Duplicate assignment to variable x")
+    }
+  }
+
+  test("Assignment fails if type checking fails") {
+    // TODO: Needs to be expanded for concept of inheritance
+    val parser = new FafnirParser()
+    val state = new ProgramState()
+    state.variables("x") = VariableInfo("Int", IntValue(123))
+
+    doParse[Statement](parser, parser.statement, "x = \"Hello\";") { matched =>
+      val intercepted = intercept[FafnirRuntimeException] {
+        matched.execute(state)
+      }
+      assert(intercepted.toString == "Runtime error at 1.1: Cannot redefine type of variable x. Is already defined as Int and String is not compatible.")
     }
   }
 
@@ -72,7 +86,7 @@ class StatementTest extends TestBase {
 
     // Input -> expected evaluation
     val inputsToOutputs = Seq(
-      ("var x=123+4;", "var x = 123 + 4;"),
+      ("var x:Int=123+4;", "var x: Int = 123 + 4;"),
       ("x=123+4;", "x = 123 + 4;"),
     )
 

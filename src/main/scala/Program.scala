@@ -34,14 +34,14 @@ class Scopes() {
   /**
     * Scope used for global variables.
     */
-  private val globalScopeStack = collection.mutable.ListBuffer(collection.mutable.Map[String, ValueInstance]())
+  private val globalScopeStack = collection.mutable.ListBuffer(collection.mutable.Map[String, VariableInfo]())
 
   /**
     * Frames for functions. Each frame has its own scope stack.
     */
-  private val frameAndScopeStack = collection.mutable.ListBuffer[collection.mutable.ListBuffer[collection.mutable.Map[String, ValueInstance]]]()
+  private val frameAndScopeStack = collection.mutable.ListBuffer[collection.mutable.ListBuffer[collection.mutable.Map[String, VariableInfo]]]()
 
-  def apply(name: String): ValueInstance = {
+  def apply(name: String): VariableInfo = {
     frameAndScopeStack.headOption.getOrElse(List()).find(_.contains(name)) match {
       case Some(scope) =>
         scope(name)
@@ -54,14 +54,20 @@ class Scopes() {
     }
   }
 
-  def update(name: String, value: ValueInstance): Unit = {
+  def update(name: String, value: VariableInfo): Unit = {
     frameAndScopeStack.headOption.getOrElse(List()).find(_.contains(name)) match {
       case Some(scope) =>
+        // Check the type for compatibility
+        if(scope(name).typeName != value.value.typeName) throw new FafnirIncompatibleTypeException("Cannot redefine type of " +
+          s"variable $name. Is already defined as ${scope(name).typeName} and ${value.value.typeName} is not compatible.")
         scope(name) = value
       case None =>
         // Not found locally, so search the global scope
         globalScopeStack.find(_.contains(name)) match {
-          case Some(scope) => scope(name) = value
+          case Some(scope) =>
+            if(scope(name).typeName != value.value.typeName) throw new FafnirIncompatibleTypeException("Cannot redefine type of " +
+              s"variable $name. Is already defined as ${scope(name).typeName} and ${value.value.typeName} is not compatible.")
+            scope(name) = value
           case None =>
             // New variable. If we're in a frame, set it in the newest frame scope. Otherwise the newest global scope.
             if(frameAndScopeStack.nonEmpty) {
@@ -78,7 +84,7 @@ class Scopes() {
     * Sets a variable on the latest frame scope, allowing for ghosting over other frames or globals (necessary for
     * parameters, for one thing).
     */
-  def setFrameVariable(name: String, value: ValueInstance): Unit = frameAndScopeStack.head.head(name) = value
+  def setFrameVariable(name: String, value: VariableInfo): Unit = frameAndScopeStack.head.head(name) = value
 
   /**
     * Checks if a variable exists in any accessible scope.
@@ -93,7 +99,7 @@ class Scopes() {
   def enterFrame(): Unit = {
     if(frameAndScopeStack.length > Constants.maxFrames) throw new IllegalStateException("Max frames exceeded")
     frameAndScopeStack.prepend(collection.mutable.ListBuffer())
-    frameAndScopeStack.head.prepend(collection.mutable.Map[String, ValueInstance]())
+    frameAndScopeStack.head.prepend(collection.mutable.Map[String, VariableInfo]())
   }
 
   /**
@@ -101,8 +107,8 @@ class Scopes() {
     */
   def enterScope(): Unit = {
     frameAndScopeStack.headOption match {
-      case Some(frame) => frame.prepend(collection.mutable.Map[String, ValueInstance]())
-      case None => globalScopeStack.prepend(collection.mutable.Map[String, ValueInstance]())
+      case Some(frame) => frame.prepend(collection.mutable.Map[String, VariableInfo]())
+      case None => globalScopeStack.prepend(collection.mutable.Map[String, VariableInfo]())
     }
   }
 
@@ -124,8 +130,8 @@ class Scopes() {
     * @return A new map containing *all* variables as they are understood to be at this point of time. Note that frame
     *         variables can ghost globals (but the globals are still there).
     */
-  def allVariables: Map[String, ValueInstance] = {
-    val variables = collection.mutable.Map[String, ValueInstance]()
+  def allVariables: Map[String, VariableInfo] = {
+    val variables = collection.mutable.Map[String, VariableInfo]()
     for(scope <- globalScopeStack.reverseIterator) {
       variables ++= scope
     }
@@ -138,3 +144,5 @@ class Scopes() {
 
   def inFrame: Boolean = frameAndScopeStack.nonEmpty
 }
+
+case class VariableInfo(typeName: String, value: ValueInstance)

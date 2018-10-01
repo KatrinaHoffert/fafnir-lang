@@ -113,7 +113,8 @@ case class FunctionValue(identifier: Identifier, parameters: List[Identifier], b
     }
 
     for((variableName, variableValue) <- parameters.zip(arguments)) {
-      state.variables.setFrameVariable(variableName.name, variableValue)
+      // TODO: Need to set types properly here (currently hardcoded to dynamic typing)
+      state.variables.setFrameVariable(variableName.name, VariableInfo(variableValue.typeName, variableValue))
     }
 
     for(statement <- body if !state.isReturning) {
