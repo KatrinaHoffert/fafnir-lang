@@ -15,21 +15,33 @@ case class Identifier(name: String) extends Primary {
       case ex: NoSuchElementException => throw new FafnirRuntimeException(this, ex.getMessage)
     }
   }
+
+  def evaluateType(staticInfo: StaticInfo): String = {
+    val (_, variableType) = staticInfo.getFullyQualifiedVariableNameAndType(name)
+
+    variableType match {
+      case Some(actualVariableType) => actualVariableType
+      case None => throw new FafnirRuntimeException(this, s"Variable $name is not defined")
+    }
+  }
   override def toString: String = name
 }
 
 case class StringLiteral(x: String) extends Primary {
   override def evaluate(state: ProgramState): ValueInstance = StringValue(x)
+  def evaluateType(staticInfo: StaticInfo): String = "String"
   override def toString: String = s""""$x""""
 }
 
 case class IntLiteral(x: Int) extends Primary {
   override def evaluate(state: ProgramState): ValueInstance = IntValue(x)
+  def evaluateType(staticInfo: StaticInfo): String = "Int"
   override def toString: String = s"$x"
 }
 
 abstract class Evaluable extends Positional {
   def evaluate(state: ProgramState): ValueInstance
+  def evaluateType(staticInfo: StaticInfo): String
 }
 
 abstract class Expression extends Evaluable

@@ -27,25 +27,23 @@ class StatementTest extends TestBase {
 
   test("Assignment fails if variable not declared first") {
     val parser = new FafnirParser()
-    val state = new ProgramState()
+    val staticInfo = new StaticInfo()
     doParse[Statement](parser, parser.statement, "x = 123;") { matched =>
       val intercepted = intercept[FafnirRuntimeException] {
-        matched.execute(state)
+        matched.staticCheck(staticInfo)
       }
       assert(intercepted.toString === "Runtime error at 1.1: Assignment to undeclared variable x")
     }
   }
 
   test("Assignment fails if redeclaring variable") {
-    // TODO: This should be expanded in the future such that we can redeclare variables in functions even if they
-    // exist globally.
     val parser = new FafnirParser()
-    val state = new ProgramState()
-    state.variables("x") = IntValue(123)
+    val staticInfo = new StaticInfo()
+    staticInfo.variableTypes("x") = "Int"
 
     doParse[Statement](parser, parser.statement, "var x: Int = 456;") { matched =>
       val intercepted = intercept[FafnirRuntimeException] {
-        matched.execute(state)
+        matched.staticCheck(staticInfo)
       }
       assert(intercepted.toString == "Runtime error at 1.5: Duplicate assignment to variable x")
     }

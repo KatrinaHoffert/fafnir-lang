@@ -7,6 +7,12 @@ case class AdditionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
     }
   }
+
+  def evaluateType(staticInfo: StaticInfo): String = {
+    // Hack: expressions evaluating to first type
+    x.evaluateType(staticInfo)
+  }
+
   override def toString: String = s"$x + $y"
 }
 
@@ -19,6 +25,12 @@ case class SubtractionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
     }
   }
+
+  def evaluateType(staticInfo: StaticInfo): String = {
+    // Hack: expressions evaluating to first type
+    x.evaluateType(staticInfo)
+  }
+
   override def toString: String = s"$x - $y"
 }
 
@@ -31,6 +43,12 @@ case class Braces(expression: Expression) extends Primary {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(expression, ex.getMessage)
     }
   }
+
+  def evaluateType(staticInfo: StaticInfo): String = {
+    // Hack: expressions evaluating to first type
+    expression.evaluateType(staticInfo)
+  }
+
   override def toString: String = s"($expression)"
 }
 
@@ -43,6 +61,12 @@ case class MultiplicationTerm(x: Evaluable, y: Evaluable) extends Term {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
     }
   }
+
+  def evaluateType(staticInfo: StaticInfo): String = {
+    // Hack: expressions evaluating to first type
+    x.evaluateType(staticInfo)
+  }
+
   override def toString: String = s"($x * $y)"
 }
 
@@ -55,6 +79,12 @@ case class DivisionTerm(x: Evaluable, y: Evaluable) extends Term {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
     }
   }
+
+  def evaluateType(staticInfo: StaticInfo): String = {
+    // Hack: expressions evaluating to first type
+    x.evaluateType(staticInfo)
+  }
+
   override def toString: String = s"($x / $y)"
 }
 
@@ -70,5 +100,11 @@ case class FunctionCall(identifier: Identifier, argExpressions: List[Expression]
       case ex: FafnirOperationException => throw new FafnirRuntimeException(identifier, ex.getMessage)
     }
   }
+
+  def evaluateType(staticInfo: StaticInfo): String = {
+    // TODO: Functions need to specify their return type
+    "Int"
+  }
+
   override def toString: String = s"$identifier(${argExpressions.map(_.toString).mkString(", ")})"
 }
