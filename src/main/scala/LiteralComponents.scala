@@ -9,7 +9,7 @@ case class Identifier(name: String) extends Primary {
     */
   override def evaluate(state: ProgramState): ValueInstance = {
     try {
-      state.variables(name).value
+      state.variables(name)
     }
     catch {
       case ex: NoSuchElementException => throw new FafnirRuntimeException(this, ex.getMessage)

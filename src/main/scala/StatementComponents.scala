@@ -18,37 +18,19 @@ case class Block(statements: List[Statement]) extends Statement {
   }
 }
 
-case class AssignmentStatement(declaringType: Option[Identifier], identifier: Identifier, expression: Expression) extends Statement {
+case class AssignmentStatement(declaration: Boolean, identifier: Identifier, expression: Expression) extends Statement {
   override def execute(state: ProgramState): Unit = {
-    // Variable storage isn't aware of if we're declaring a variable, so do checks for that here
     val variableExists = state.variables.contains(identifier.name)
-    if(!variableExists && declaringType.isEmpty) {
+    if(!variableExists && !declaration) {
       throw new FafnirRuntimeException(identifier, s"Assignment to undeclared variable $identifier")
     }
-    else if(variableExists && declaringType.isDefined) {
+    else if(variableExists && declaration) {
       throw new FafnirRuntimeException(identifier, s"Duplicate assignment to variable $identifier")
     }
-
-    // Must handle case where we tried to assign an incompatible type
-    try {
-      declaringType match {
-        case Some(declaredType) =>
-          state.variables(identifier.name) = VariableInfo(declaredType.name, expression.evaluate(state))
-        case None =>
-          val existingTypeName = state.variables(identifier.name).typeName
-          state.variables(identifier.name) = VariableInfo(existingTypeName, expression.evaluate(state))
-      }
-    }
-    catch {
-      case ex: FafnirIncompatibleTypeException => throw new FafnirRuntimeException(identifier, ex.getMessage)
-    }
+    state.variables(identifier.name) = expression.evaluate(state)
   }
 
-  override def toString: String = {
-    val leadingVar = if(declaringType.isDefined) "var " else ""
-    val typeDefinition = if(declaringType.isDefined) s": ${declaringType.get}" else ""
-    s"$leadingVar$identifier$typeDefinition = $expression;"
-  }
+  override def toString: String = s"${if(declaration) "var " else ""}$identifier = $expression;"
 }
 
 case class FunctionDeclaration(identifier: Identifier, parameters: List[Identifier], body: Block) extends Statement {
@@ -57,8 +39,7 @@ case class FunctionDeclaration(identifier: Identifier, parameters: List[Identifi
       throw new FafnirRuntimeException(identifier, s"Cannot assign new function to existing variable $identifier")
     }
 
-    val functionValue = FunctionValue(identifier, parameters, body.statements)
-    state.variables(identifier.name) = VariableInfo(functionValue.typeName, functionValue)
+    state.variables(identifier.name) = FunctionValue(identifier, parameters, body.statements)
   }
 
   override def toString: String = s"func $identifier(${parameters.mkString(", ")}) $body"

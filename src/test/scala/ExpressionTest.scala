@@ -2,8 +2,8 @@ class ExpressionTest extends TestBase {
   test("Expressions evaluate to expected values") {
     val parser = new FafnirParser()
     val state = new ProgramState()
-    state.variables("foo") = VariableInfo("Int", IntValue(7))
-    state.variables("myVar") = VariableInfo("String", StringValue("abc"))
+    state.variables("foo") = IntValue(7)
+    state.variables("myVar") = StringValue("abc")
 
     // Input -> expected evaluation
     val inputsToOutputs = Seq(
@@ -46,8 +46,8 @@ class ExpressionTest extends TestBase {
   test("Unsupported operations get the expected error message") {
     val parser = new FafnirParser()
     val state = new ProgramState()
-    state.variables("predefinedInt") = VariableInfo("Int", IntValue(123))
-    state.variables("someFunction") = VariableInfo("Function", FunctionValue(Identifier("someFunction"), List(Identifier("a")), List()))
+    state.variables("predefinedInt") = IntValue(123)
+    state.variables("someFunction") = FunctionValue(Identifier("someFunction"), List(Identifier("a")), List())
 
     // Input -> error message
     val inputsToErrorMessages = Seq(

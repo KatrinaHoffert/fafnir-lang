@@ -18,8 +18,3 @@ class FafnirRuntimeException(token: Positional, msg: String) extends Exception(m
   * evaluator can then transform this into a `FafnirRuntimeException` so that the location can be properly reported.
   */
 class FafnirOperationException(msg: String) extends Exception(msg) {}
-
-/**
-  * Represents attempts to use an incompatible type for something.
-  */
-class FafnirIncompatibleTypeException(msg: String) extends Exception(msg) {}

@@ -64,7 +64,7 @@ case class FunctionCall(identifier: Identifier, argExpressions: List[Expression]
       // Note: FafnirOperationException should never be thrown by the argument evaluation since a more expression
       // should catch it and transform it into a FafnirRuntimeException
       val argValues = argExpressions.map(_.evaluate(state))
-      state.variables(identifier.name).value.call(state, argValues)
+      state.variables(identifier.name).call(state, argValues)
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(identifier, ex.getMessage)

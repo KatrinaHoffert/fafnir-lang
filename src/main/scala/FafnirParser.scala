@@ -16,7 +16,7 @@ class FafnirParser extends RegexParsers {
     """"[^"\\]*(\\.[^"\\]*)*"""".r ^^ { x =>
       // Remove the quotes
       val stringContents = x.slice(1, x.length - 1)
-      StringLiteral(StringContext.treatEscapes(stringContents))
+      StringLiteral(StringContext treatEscapes stringContents)
     }
   }
 
@@ -61,23 +61,16 @@ class FafnirParser extends RegexParsers {
 
   // Statement components
   def statement: Parser[Statement] = positioned {
-    declaringAssignmentStatement | assignmentStatement | ifStatement | whileLoop | functionDefinition |
-      functionCallStatement | returnStatement | block
+    assignmentStatement | ifStatement | whileLoop | functionDefinition | functionCallStatement | returnStatement | block
   }
 
   def block: Parser[Block] = positioned {
     "{" ~ statement.* ~ "}" ^^ { case _ ~ statements ~ _ => Block(statements) }
   }
 
-  def declaringAssignmentStatement: Parser[Statement] = positioned {
-    "var" ~ identifier ~ ":" ~ identifier ~ "=" ~ expression ~ ";" ^^ {
-      case _ ~ ident ~ _ ~ varType ~ _ ~ expr ~ _ => AssignmentStatement(Some(varType), ident, expr)
-    }
-  }
-
   def assignmentStatement: Parser[Statement] = positioned {
-    identifier ~ "=" ~ expression ~ ";" ^^ {
-      case ident ~ _ ~ expr ~ _ => AssignmentStatement(None, ident, expr)
+    "var".? ~ identifier ~ "=" ~ expression ~ ";" ^^ {
+      case declaration ~ ident ~ _ ~ expr ~ _ => AssignmentStatement(declaration.isDefined, ident, expr)
     }
   }
 
