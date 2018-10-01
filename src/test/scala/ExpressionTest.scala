@@ -16,6 +16,8 @@ class ExpressionTest extends TestBase {
       ("5-2", IntValue(3)),
       ("5 - foo", IntValue(-2)),
       ("myVar * (foo - 4)", StringValue("abcabcabc")),
+      (""""Escape\" \\\"test"""", StringValue("""Escape" \"test""")),
+      (""""More\n\tescapes"""", StringValue("More\n\tescapes")),
     )
 
     for(inputOutput <- inputsToOutputs) {

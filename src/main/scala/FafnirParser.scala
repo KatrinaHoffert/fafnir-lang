@@ -16,7 +16,7 @@ class FafnirParser extends RegexParsers {
     """"[^"\\]*(\\.[^"\\]*)*"""".r ^^ { x =>
       // Remove the quotes
       val stringContents = x.slice(1, x.length - 1)
-      StringLiteral(stringContents)
+      StringLiteral(StringContext treatEscapes stringContents)
     }
   }
 
