@@ -5,7 +5,7 @@
 abstract class ValueInstance {
   val typeName: String
 
-  val methodMap: collection.mutable.Map[(String, List[String]), ValueInstance] = collection.mutable.Map()
+  val methodMap: collection.mutable.Map[String, ValueInstance] = collection.mutable.Map()
 
   def call(state: ProgramState, arguments: List[ValueInstance]): ValueInstance = {
     throw new FafnirOperationException(s"Type $typeName is not callable")
@@ -31,31 +31,31 @@ abstract class ValueInstance {
 case class IntValue(value: Int) extends ValueInstance {
   override val typeName: String = "Int"
 
-  methodMap(("__add", List("Int"))) = simpleBuiltInFunction1("__add", that =>
+  methodMap("__add__Int") = simpleBuiltInFunction1("__add", that =>
     that match {
       case intThat: IntValue => IntValue(value + intThat.value)
     }
   )
 
-  methodMap(("__sub", List("Int"))) = simpleBuiltInFunction1("__sub", that =>
+  methodMap("__sub__Int") = simpleBuiltInFunction1("__sub", that =>
     that match {
       case intThat: IntValue => IntValue(value - intThat.value)
     }
   )
 
-  methodMap(("__mult", List("Int"))) = simpleBuiltInFunction1("__mult", that =>
+  methodMap("__mult__Int") = simpleBuiltInFunction1("__mult", that =>
     that match {
       case intThat: IntValue => IntValue(value * intThat.value)
     }
   )
 
-  methodMap(("__mult", List("String"))) = simpleBuiltInFunction1("__mult", that =>
+  methodMap("__mult__String") = simpleBuiltInFunction1("__mult", that =>
     that match {
       case stringThat: StringValue => StringValue(stringThat.value * value)
     }
   )
 
-  methodMap(("__div", List("Int"))) = simpleBuiltInFunction1("__div", that =>
+  methodMap("__div__Int") = simpleBuiltInFunction1("__div", that =>
     that match {
       case intThat: IntValue =>
         if(intThat.value == 0) throw new FafnirOperationException("Division by zero")
@@ -71,13 +71,13 @@ case class IntValue(value: Int) extends ValueInstance {
 case class StringValue(value: String) extends ValueInstance {
   override val typeName: String = "String"
 
-  methodMap(("__add", List("String"))) = simpleBuiltInFunction1("__add", that =>
+  methodMap("__add__String") = simpleBuiltInFunction1("__add", that =>
     that match {
       case stringThat: StringValue => StringValue(value + stringThat.value)
     }
   )
 
-  methodMap(("__mult", List("Int"))) = simpleBuiltInFunction1("__mult", that =>
+  methodMap("__mult__Int") = simpleBuiltInFunction1("__mult", that =>
     that match {
       case intThat: IntValue => StringValue(value * intThat.value)
     }

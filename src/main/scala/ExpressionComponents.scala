@@ -3,7 +3,7 @@ case class AdditionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
     try {
       val xValue = x.evaluate(state)
       val yValue = y.evaluate(state)
-      xValue.methodMap("__add", List(yValue.typeName)).call(state, List(yValue))
+      xValue.methodMap(s"__add__${yValue.typeName}").call(state, List(yValue))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
@@ -30,7 +30,7 @@ case class SubtractionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
     try {
       val xValue = x.evaluate(state)
       val yValue = y.evaluate(state)
-      xValue.methodMap("__sub", List(yValue.typeName)).call(state, List(yValue))
+      xValue.methodMap(s"__sub__${yValue.typeName}").call(state, List(yValue))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
@@ -74,7 +74,7 @@ case class MultiplicationTerm(x: Evaluable, y: Evaluable) extends Term {
     try {
       val xValue = x.evaluate(state)
       val yValue = y.evaluate(state)
-      xValue.methodMap("__mult", List(yValue.typeName)).call(state, List(yValue))
+      xValue.methodMap(s"__mult__${yValue.typeName}").call(state, List(yValue))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
@@ -101,7 +101,7 @@ case class DivisionTerm(x: Evaluable, y: Evaluable) extends Term {
     try {
       val xValue = x.evaluate(state)
       val yValue = y.evaluate(state)
-      xValue.methodMap("__div", List(yValue.typeName)).call(state, List(yValue))
+      xValue.methodMap(s"__div__${yValue.typeName}").call(state, List(yValue))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
