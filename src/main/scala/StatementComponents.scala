@@ -107,8 +107,15 @@ case class FunctionCallStatement(function: FunctionCall) extends Statement {
   }
 
   override def staticCheck(staticInfo: StaticInfo): Unit = {
-    // TODO: Check that the variable exists and is callable
-    // TODO: Evaluate function arguments
+    // Calls to nested defined functions not supported (how to get FQN?)
+    val argumentTypes = function.argExpressions.map(_.evaluateType(staticInfo))
+    val mangledName = (function.identifier.name +: argumentTypes).mkString("__")
+
+    // Lots of room for improvement with reporting here
+    if(!staticInfo.functionSignatures.contains(mangledName)) {
+      val parametersString = "(" + argumentTypes.mkString(", ") + ")"
+      throw new FafnirRuntimeException(function.identifier, s"Function ${function.identifier}$parametersString does not exist")
+    }
   }
 
   override def toString: String = s"$function;"

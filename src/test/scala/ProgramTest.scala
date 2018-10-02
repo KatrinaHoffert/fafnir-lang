@@ -306,18 +306,32 @@ class ProgramTest extends TestBase {
 
   test("Static testing catches type mismatches") {
     val parser = new FafnirParser()
-    val program =
+    val programAndExpectedErrors = Map(
       """
         |var x: Int = 123;
         |var y: String = "hello";
         |if(x + y){}
-      """.stripMargin
+      """.stripMargin -> "Runtime error at 4.8: Operator + not supported for types Int and String",
+      """
+        |func foo(x: Int): Void {}
+        |foo("hello");
+      """.stripMargin -> "Runtime error at 3.1: Function foo(String) does not exist",
+      """
+        |func foo(x: Int): Int { return x + "hello"; }
+      """.stripMargin -> "Runtime error at 2.36: Operator + not supported for types Int and String",
+      """
+        |func foo(x: Int, y: Int): Void {}
+        |foo(123, 123, 123);
+      """.stripMargin -> "Runtime error at 3.1: Function foo(Int, Int, Int) does not exist",
+    )
 
-    doParse[Program](parser, parser.program, program) { matched =>
-      val intercepted = intercept[FafnirRuntimeException] {
-        matched.staticCheck()
+    for((program, expectedError) <- programAndExpectedErrors) {
+      doParse[Program](parser, parser.program, program) { matched =>
+        val intercepted = intercept[FafnirRuntimeException] {
+          matched.staticCheck()
+        }
+        assert(intercepted.toString == expectedError)
       }
-      assert(intercepted.toString == "Runtime error at 4.8: Operator + not supported for types Int and String")
     }
   }
 
