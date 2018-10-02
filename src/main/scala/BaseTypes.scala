@@ -5,10 +5,8 @@
 abstract class ValueInstance {
   val typeName: String
 
-  def +(that: ValueInstance): ValueInstance = unsupportedOperation("+", that)
-  def -(that: ValueInstance): ValueInstance = unsupportedOperation("-", that)
-  def *(that: ValueInstance): ValueInstance = unsupportedOperation("*", that)
-  def /(that: ValueInstance): ValueInstance = unsupportedOperation("/", that)
+  val memberMap: collection.mutable.Map[String, MemberInfo] = collection.mutable.Map()
+
   def call(state: ProgramState, arguments: List[ValueInstance]): ValueInstance = {
     throw new FafnirOperationException(s"Type $typeName is not callable")
   }
@@ -21,42 +19,50 @@ abstract class ValueInstance {
   protected def unsupportedOperation(op: String, that: ValueInstance): Nothing = {
     throw new FafnirOperationException(s"Operation $op is not defined on types $typeName and ${that.typeName}")
   }
+
+  /**
+    * Easy constructor for a built in function that takes only 1 argument and doesn't modify state.
+    */
+  protected def simpleBuiltInFunction1(name: String, func: ValueInstance => ValueInstance): MemberInfo = {
+    MemberInfo("Function", BuiltinFunctionValue(name, 1, (_, args) => func(args(0))))
+  }
 }
+
+case class MemberInfo(memberType: String, instance: ValueInstance)
 
 case class IntValue(value: Int) extends ValueInstance {
   override val typeName: String = "Int"
 
-  override def +(that: ValueInstance): ValueInstance = {
+  memberMap("__add") = simpleBuiltInFunction1("__add", that =>
     that match {
       case intThat: IntValue => IntValue(value + intThat.value)
       case _ => unsupportedOperation("+", that)
     }
-  }
+  )
 
-  override def -(that: ValueInstance): ValueInstance = {
+  memberMap("__sub") = simpleBuiltInFunction1("__sub", that =>
     that match {
       case intThat: IntValue => IntValue(value - intThat.value)
       case _ => unsupportedOperation("-", that)
     }
-  }
+  )
 
-  override def *(that: ValueInstance): ValueInstance = {
+  memberMap("__mult") = simpleBuiltInFunction1("__mult", that =>
     that match {
       case intThat: IntValue => IntValue(value * intThat.value)
       case stringThat: StringValue => StringValue(stringThat.value * value)
       case _ => unsupportedOperation("*", that)
     }
-  }
+  )
 
-  override def /(that: ValueInstance): ValueInstance = {
+  memberMap("__div") = simpleBuiltInFunction1("__div", that =>
     that match {
-      case intThat: IntValue => {
+      case intThat: IntValue =>
         if(intThat.value == 0) throw new FafnirOperationException("Division by zero")
         IntValue(value / intThat.value)
-      }
       case _ => unsupportedOperation("/", that)
     }
-  }
+  )
 
   override def isTruthy: Boolean = value != 0
 
@@ -66,19 +72,19 @@ case class IntValue(value: Int) extends ValueInstance {
 case class StringValue(value: String) extends ValueInstance {
   override val typeName: String = "String"
 
-  override def +(that: ValueInstance): ValueInstance = {
+  memberMap("__add") = simpleBuiltInFunction1("__add", that =>
     that match {
       case stringThat: StringValue => StringValue(value + stringThat.value)
       case _ => unsupportedOperation("+", that)
     }
-  }
+  )
 
-  override def *(that: ValueInstance): ValueInstance = {
+  memberMap("__mult") = simpleBuiltInFunction1("__mult", that =>
     that match {
       case intThat: IntValue => StringValue(value * intThat.value)
       case _ => unsupportedOperation("*", that)
     }
-  }
+  )
 
   override def isTruthy: Boolean = value.length > 0
 
@@ -130,4 +136,19 @@ case class FunctionValue(identifier: Identifier, parameters: List[Identifier], b
   }
 
   override def toString: String = s"Function ${identifier.name}"
+}
+
+case class BuiltinFunctionValue(name: String, numParameters: Int,
+                                func: (ProgramState, List[ValueInstance]) => ValueInstance) extends ValueInstance {
+  override val typeName: String = "Function"
+
+  override def call(state: ProgramState, arguments: List[ValueInstance]): ValueInstance = {
+    if (numParameters != arguments.length) {
+      throw new FafnirOperationException(s"Function $name takes $numParameters arguments but " +
+        s"${arguments.length} were provided")
+    }
+    func(state, arguments)
+  }
+
+  override def toString: String = s"Function $name"
 }

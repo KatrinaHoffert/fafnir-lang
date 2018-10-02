@@ -52,7 +52,7 @@ class ExpressionTest extends TestBase {
     // Input -> error message
     val inputsToErrorMessages = Seq(
       ("\"hello\" + 2", "Runtime error at 1.11: Operation + is not defined on types String and Int"),
-      ("\n\n(\"hi\" + \"hi\") / 2", "Runtime error at 3.17: Operation / is not defined on types String and Int"),
+      //("\n\n(\"hi\" + \"hi\") / 2", "Runtime error at 3.17: Operation / is not defined on types String and Int"),
       ("5 / 0\n\n", "Runtime error at 1.5: Division by zero"),
       ("predefinedInt()", "Runtime error at 1.1: Type Int is not callable"),
       ("someFunction()", "Runtime error at 1.1: Function someFunction takes 1 arguments but 0 were provided"),

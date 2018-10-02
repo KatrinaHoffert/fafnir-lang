@@ -1,7 +1,7 @@
 case class AdditionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
   override def evaluate(state: ProgramState): ValueInstance = {
     try {
-      x.evaluate(state) + y.evaluate(state)
+      x.evaluate(state).memberMap("__add").instance.call(state, List(y.evaluate(state)))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
@@ -19,7 +19,7 @@ case class AdditionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
 case class SubtractionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
   override def evaluate(state: ProgramState): ValueInstance = {
     try {
-      x.evaluate(state) - y.evaluate(state)
+      x.evaluate(state).memberMap("__sub").instance.call(state, List(y.evaluate(state)))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
@@ -55,7 +55,7 @@ case class Braces(expression: Expression) extends Primary {
 case class MultiplicationTerm(x: Evaluable, y: Evaluable) extends Term {
   override def evaluate(state: ProgramState): ValueInstance = {
     try {
-      x.evaluate(state) * y.evaluate(state)
+      x.evaluate(state).memberMap("__mult").instance.call(state, List(y.evaluate(state)))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)
@@ -73,7 +73,7 @@ case class MultiplicationTerm(x: Evaluable, y: Evaluable) extends Term {
 case class DivisionTerm(x: Evaluable, y: Evaluable) extends Term {
   override def evaluate(state: ProgramState): ValueInstance = {
     try {
-      x.evaluate(state) / y.evaluate(state)
+      x.evaluate(state).memberMap("__div").instance.call(state, List(y.evaluate(state)))
     }
     catch {
       case ex: FafnirOperationException => throw new FafnirRuntimeException(y, ex.getMessage)

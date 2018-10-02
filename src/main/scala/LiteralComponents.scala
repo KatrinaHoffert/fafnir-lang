@@ -8,12 +8,7 @@ case class Identifier(name: String) extends Primary {
     * is the value of said variable. If not in the program state, it's an undefined variable and triggers an error.
     */
   override def evaluate(state: ProgramState): ValueInstance = {
-    try {
-      state.variables(name)
-    }
-    catch {
-      case ex: NoSuchElementException => throw new FafnirRuntimeException(this, ex.getMessage)
-    }
+    state.variables(name)
   }
 
   def evaluateType(staticInfo: StaticInfo): String = {
