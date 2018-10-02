@@ -57,7 +57,7 @@ class StatementTest extends TestBase {
       matched.execute(state)
       assert(state.variables.contains("foo"), "First declaration should succeed")
     }
-    doParse[Statement](parser, parser.statement, "func foo(bar) {}") { matched =>
+    doParse[Statement](parser, parser.statement, "func foo(bar: Int) {}") { matched =>
       val intercepted = intercept[FafnirRuntimeException] {
         matched.execute(state)
       }

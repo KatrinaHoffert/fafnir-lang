@@ -109,7 +109,14 @@ class FafnirParser extends RegexParsers {
     }
   }
 
-  def parameterList: Parser[List[Identifier]] = "(" ~ repsep(identifier, ",") ~ ")" ^^ { case _ ~ args ~ _ => args }
+  def parameterList: Parser[List[(Identifier, Identifier)]] = "(" ~ repsep(identifier ~ ":" ~ identifier, ",") ~ ")" ^^ {
+    case _ ~ parametersAndTypes ~ _ =>
+      parametersAndTypes.map {
+        _ match {
+          case parameterName ~ _ ~ parameterType => (parameterName, parameterType)
+        }
+      }
+  }
 
   def functionCallStatement: Parser[Statement] = positioned {
     functionCall ~ ";" ^^ { case func ~ _ => FunctionCallStatement(func) }

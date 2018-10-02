@@ -32,7 +32,7 @@ class ProgramTest extends TestBase {
         |
         |// Testing function definitions
         |var returnValue: Int = 0;
-        |func foo(a, b) {
+        |func foo(a: Int, b: Int) {
         |  returnValue = a + b;
         |}
         |foo(5, 7);
@@ -40,7 +40,7 @@ class ProgramTest extends TestBase {
         |if(renamedFoo(returnValue, 1)) {} // Evaluating function in an expression
         |
         |// Returning functions
-        |func square(a) { return a * a; }
+        |func square(a: Int) { return a * a; }
         |var thirty: Int = square(5) + 5;
       """.stripMargin
 
@@ -59,6 +59,7 @@ class ProgramTest extends TestBase {
     )
 
     doParse[Program](parser, parser.program, program) { matched =>
+      matched.staticCheck()
       val state = matched.execute()
 
       // We want to compare functions and non-function variables separately because functions aren't really
@@ -169,7 +170,7 @@ class ProgramTest extends TestBase {
         |    if(1){ a = 1; }
         |  }
         |}
-        |func someFunction (a, b) { var local : Int = a + b; }
+        |func someFunction (a: Int, b: Int) { var local : Int = a + b; }
         |someFunction(1+2, 3);
       """.stripMargin
 
@@ -196,7 +197,7 @@ class ProgramTest extends TestBase {
         |    }
         |  }
         |}
-        |func someFunction(a, b) {
+        |func someFunction(a: Int, b: Int) {
         |  var local: Int = a + b;
         |}
         |someFunction(1 + 2, 3);
@@ -212,7 +213,7 @@ class ProgramTest extends TestBase {
     val program =
       """
         |// This is slightly complicated due to the lack of comparison operators
-        |func fibonacci(n) {
+        |func fibonacci(n: Int) {
         |  // Assumes n >= 0
         |  if(n) { // n != 0
         |    if(n - 1) { // n != 1

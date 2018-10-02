@@ -16,10 +16,6 @@ abstract class ValueInstance {
     */
   def isTruthy: Boolean = true
 
-  protected def unsupportedOperation(op: String, that: ValueInstance): Nothing = {
-    throw new FafnirOperationException(s"Operation $op is not defined on types $typeName and ${that.typeName}")
-  }
-
   /**
     * Easy constructor for a built in function that takes only 1 argument and doesn't modify state.
     */
