@@ -5,7 +5,7 @@
 abstract class ValueInstance {
   val typeName: String
 
-  val memberMap: collection.mutable.Map[String, MemberInfo] = collection.mutable.Map()
+  val methodMap: collection.mutable.Map[(String, List[String]), ValueInstance] = collection.mutable.Map()
 
   def call(state: ProgramState, arguments: List[ValueInstance]): ValueInstance = {
     throw new FafnirOperationException(s"Type $typeName is not callable")
@@ -23,44 +23,43 @@ abstract class ValueInstance {
   /**
     * Easy constructor for a built in function that takes only 1 argument and doesn't modify state.
     */
-  protected def simpleBuiltInFunction1(name: String, func: ValueInstance => ValueInstance): MemberInfo = {
-    MemberInfo("Function", BuiltinFunctionValue(name, 1, (_, args) => func(args(0))))
+  protected def simpleBuiltInFunction1(name: String, func: ValueInstance => ValueInstance): ValueInstance = {
+    BuiltinFunctionValue(name, 1, (_, args) => func(args(0)))
   }
 }
-
-case class MemberInfo(memberType: String, instance: ValueInstance)
 
 case class IntValue(value: Int) extends ValueInstance {
   override val typeName: String = "Int"
 
-  memberMap("__add") = simpleBuiltInFunction1("__add", that =>
+  methodMap(("__add", List("Int"))) = simpleBuiltInFunction1("__add", that =>
     that match {
       case intThat: IntValue => IntValue(value + intThat.value)
-      case _ => unsupportedOperation("+", that)
     }
   )
 
-  memberMap("__sub") = simpleBuiltInFunction1("__sub", that =>
+  methodMap(("__sub", List("Int"))) = simpleBuiltInFunction1("__sub", that =>
     that match {
       case intThat: IntValue => IntValue(value - intThat.value)
-      case _ => unsupportedOperation("-", that)
     }
   )
 
-  memberMap("__mult") = simpleBuiltInFunction1("__mult", that =>
+  methodMap(("__mult", List("Int"))) = simpleBuiltInFunction1("__mult", that =>
     that match {
       case intThat: IntValue => IntValue(value * intThat.value)
-      case stringThat: StringValue => StringValue(stringThat.value * value)
-      case _ => unsupportedOperation("*", that)
     }
   )
 
-  memberMap("__div") = simpleBuiltInFunction1("__div", that =>
+  methodMap(("__mult", List("String"))) = simpleBuiltInFunction1("__mult", that =>
+    that match {
+      case stringThat: StringValue => StringValue(stringThat.value * value)
+    }
+  )
+
+  methodMap(("__div", List("Int"))) = simpleBuiltInFunction1("__div", that =>
     that match {
       case intThat: IntValue =>
         if(intThat.value == 0) throw new FafnirOperationException("Division by zero")
         IntValue(value / intThat.value)
-      case _ => unsupportedOperation("/", that)
     }
   )
 
@@ -72,17 +71,15 @@ case class IntValue(value: Int) extends ValueInstance {
 case class StringValue(value: String) extends ValueInstance {
   override val typeName: String = "String"
 
-  memberMap("__add") = simpleBuiltInFunction1("__add", that =>
+  methodMap(("__add", List("String"))) = simpleBuiltInFunction1("__add", that =>
     that match {
       case stringThat: StringValue => StringValue(value + stringThat.value)
-      case _ => unsupportedOperation("+", that)
     }
   )
 
-  memberMap("__mult") = simpleBuiltInFunction1("__mult", that =>
+  methodMap(("__mult", List("Int"))) = simpleBuiltInFunction1("__mult", that =>
     that match {
       case intThat: IntValue => StringValue(value * intThat.value)
-      case _ => unsupportedOperation("*", that)
     }
   )
 
