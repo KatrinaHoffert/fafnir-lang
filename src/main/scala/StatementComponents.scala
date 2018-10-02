@@ -63,7 +63,8 @@ case class AssignmentStatement(declaringType: Option[Identifier], identifier: Id
   }
 }
 
-case class FunctionDeclaration(identifier: Identifier, parameters: List[(Identifier, Identifier)], body: Block) extends Statement {
+case class FunctionDeclaration(identifier: Identifier, parameters: List[(Identifier, Identifier)],
+                               returnType: Identifier, body: Block) extends Statement {
   override def execute(state: ProgramState): Unit = {
     if(state.variables.contains(identifier.name)) {
       throw new FafnirRuntimeException(identifier, s"Cannot assign new function to existing variable $identifier")
@@ -83,7 +84,9 @@ case class FunctionDeclaration(identifier: Identifier, parameters: List[(Identif
       staticInfo.variableTypes(s"$fullyQualifiedName$$${parameter.name}") = parameterType.name
     }
 
-    // TODO: Add function signature info to staticInfo
+    // Function should be mangled like `functionName__ParamType1__ParamType2`
+    val mangledFunctionName = (fullyQualifiedName +: parameters.map(_._2)).mkString("__")
+    staticInfo.functionSignatures(mangledFunctionName) = (returnType.name, parameters.map{ case (param, paramType) => (param.name, paramType.name)})
 
     // Body of the function needs to be checked now
     staticInfo.currentLocation.append(identifier.name)
@@ -93,7 +96,7 @@ case class FunctionDeclaration(identifier: Identifier, parameters: List[(Identif
 
   override def toString: String = {
     val parameterString = parameters.map{ case (param, paramType) => s"$param: $paramType" }.mkString(", ")
-    s"func $identifier($parameterString) $body"
+    s"func $identifier($parameterString): $returnType $body"
   }
 }
 

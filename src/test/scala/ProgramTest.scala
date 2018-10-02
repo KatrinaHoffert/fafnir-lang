@@ -32,7 +32,7 @@ class ProgramTest extends TestBase {
         |
         |// Testing function definitions
         |var returnValue: Int = 0;
-        |func foo(a: Int, b: Int) {
+        |func foo(a: Int, b: Int): Void {
         |  returnValue = a + b;
         |}
         |foo(5, 7);
@@ -40,7 +40,7 @@ class ProgramTest extends TestBase {
         |if(renamedFoo(returnValue, 1)) {} // Evaluating function in an expression
         |
         |// Returning functions
-        |func square(a: Int) { return a * a; }
+        |func square(a: Int): Int { return a * a; }
         |var thirty: Int = square(5) + 5;
       """.stripMargin
 
@@ -59,7 +59,7 @@ class ProgramTest extends TestBase {
     )
 
     doParse[Program](parser, parser.program, program) { matched =>
-      matched.staticCheck()
+      matched.staticCheck() // To avoid dumb bugs
       val state = matched.execute()
 
       // We want to compare functions and non-function variables separately because functions aren't really
@@ -170,7 +170,7 @@ class ProgramTest extends TestBase {
         |    if(1){ a = 1; }
         |  }
         |}
-        |func someFunction (a: Int, b: Int) { var local : Int = a + b; }
+        |func someFunction (a: Int, b: Int):Void { var local : Int = a + b; }
         |someFunction(1+2, 3);
       """.stripMargin
 
@@ -197,7 +197,7 @@ class ProgramTest extends TestBase {
         |    }
         |  }
         |}
-        |func someFunction(a: Int, b: Int) {
+        |func someFunction(a: Int, b: Int): Void {
         |  var local: Int = a + b;
         |}
         |someFunction(1 + 2, 3);
@@ -213,7 +213,7 @@ class ProgramTest extends TestBase {
     val program =
       """
         |// This is slightly complicated due to the lack of comparison operators
-        |func fibonacci(n: Int) {
+        |func fibonacci(n: Int): Int {
         |  // Assumes n >= 0
         |  if(n) { // n != 0
         |    if(n - 1) { // n != 1
@@ -258,7 +258,7 @@ class ProgramTest extends TestBase {
     val parser = new FafnirParser()
     val program =
       """
-        |func infinite() {
+        |func infinite(): Void {
         |  infinite();
         |}
         |infinite();
@@ -276,11 +276,11 @@ class ProgramTest extends TestBase {
     val parser = new FafnirParser()
     val program =
       """
-        |func mixup() { return 1 + 1; } // So we can see if return values are mishandled
-        |func noReturn() {
+        |func mixup(): Int { return 1 + 1; } // So we can see if return values are mishandled
+        |func noReturn(): Void {
         |  var a: Int = 123;
         |}
-        |func returnNoExpression() {
+        |func returnNoExpression(): Void {
         |  var a: Int = 123;
         |  return;
         |}
@@ -304,7 +304,6 @@ class ProgramTest extends TestBase {
     }
   }
 
-
   test("Static testing catches type mismatches") {
     val parser = new FafnirParser()
     val program =
@@ -319,6 +318,41 @@ class ProgramTest extends TestBase {
         matched.staticCheck()
       }
       assert(intercepted.toString == "Runtime error at 4.8: Operator + not supported for types Int and String")
+    }
+  }
+
+  test("Static testing determines correct type signatures") {
+    val parser = new FafnirParser()
+    val program =
+      """
+        |var x: Int = 123;
+        |var y: String = "hello";
+        |func foo(a: Int, b: String): Int {
+        |  return a * a;
+        |}
+        |var z: Int = foo(x, y);
+        |func foo2(): Void {}
+      """.stripMargin
+
+    val expectedVariableTypes = Map(
+      "x" -> "Int",
+      "y" -> "String",
+      "foo" -> "Function",
+      "foo$a" -> "Int",
+      "foo$b" -> "String",
+      "z" -> "Int",
+      "foo2" -> "Function"
+    )
+
+    val expectedFunctionSignatures = Map(
+      "foo__Int__String" -> ("Int", List(("a", "Int"), ("b", "String"))),
+      "foo2" -> ("Void", List()),
+    )
+
+    doParse[Program](parser, parser.program, program) { matched =>
+      val staticInfo = matched.staticCheck()
+      assert(staticInfo.variableTypes === expectedVariableTypes)
+      assert(staticInfo.functionSignatures -- Constants.builtinFunctionSignatures.keys === expectedFunctionSignatures)
     }
   }
 }

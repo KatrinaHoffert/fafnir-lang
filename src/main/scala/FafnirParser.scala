@@ -104,8 +104,8 @@ class FafnirParser extends RegexParsers {
 
   // Functions
   def functionDefinition: Parser[Statement] = positioned {
-    "func" ~ identifier ~ parameterList ~ block ^^ {
-      case _ ~ identifier ~ parameters ~ body => FunctionDeclaration(identifier, parameters, body)
+    "func" ~ identifier ~ parameterList ~ ":" ~ identifier ~ block ^^ {
+      case _ ~ identifier ~ parameters ~ _ ~ returnType ~ body => FunctionDeclaration(identifier, parameters, returnType, body)
     }
   }
 
