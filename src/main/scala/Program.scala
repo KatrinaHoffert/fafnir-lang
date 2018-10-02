@@ -62,6 +62,7 @@ class StaticInfo() {
     * functions are given unique names like `someFunction$anotherFunction`.
     */
   val functionSignatures: collection.mutable.Map[String, (String, List[(String, String)])] = collection.mutable.Map()
+  functionSignatures ++= Constants.builtinFunctionSignatures.toList
 
   def getFullyQualifiedVariableNameAndType(name: String): (String, Option[String]) = {
     var variableName = ""

@@ -302,4 +302,22 @@ class ProgramTest extends TestBase {
       assert(nonFunctionVariables === expectedVariables)
     }
   }
+
+
+  test("Static testing catches type mismatches") {
+    val parser = new FafnirParser()
+    val program =
+      """
+        |var x: Int = 123;
+        |var y: String = "hello";
+        |if(x + y){}
+      """.stripMargin
+
+    doParse[Program](parser, parser.program, program) { matched =>
+      val intercepted = intercept[FafnirRuntimeException] {
+        matched.staticCheck()
+      }
+      assert(intercepted.toString == "Runtime error at 4.8: Operator + not supported for types Int and String")
+    }
+  }
 }

@@ -1,5 +1,3 @@
-import java.util.NoSuchElementException
-
 import scala.util.parsing.input.Positional
 
 case class Identifier(name: String) extends Primary {

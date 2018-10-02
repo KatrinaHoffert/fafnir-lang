@@ -11,8 +11,15 @@ case class AdditionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
   }
 
   def evaluateType(staticInfo: StaticInfo): String = {
-    // Hack: expressions evaluating to first type
-    x.evaluateType(staticInfo)
+    val xType = x.evaluateType(staticInfo)
+    val yType = y.evaluateType(staticInfo)
+
+    staticInfo.functionSignatures.get(s"$xType$$__add__$yType") match {
+      case Some((returnType, parameterList)) =>
+        returnType
+      case None =>
+        throw new FafnirRuntimeException(y, s"Operator + not supported for types $xType and $yType")
+    }
   }
 
   override def toString: String = s"$x + $y"
@@ -31,8 +38,15 @@ case class SubtractionEvaluable(x: Evaluable, y: Evaluable) extends Expression {
   }
 
   def evaluateType(staticInfo: StaticInfo): String = {
-    // Hack: expressions evaluating to first type
-    x.evaluateType(staticInfo)
+    val xType = x.evaluateType(staticInfo)
+    val yType = y.evaluateType(staticInfo)
+
+    staticInfo.functionSignatures.get(s"$xType$$__sub__$yType") match {
+      case Some((returnType, parameterList)) =>
+        returnType
+      case None =>
+        throw new FafnirRuntimeException(y, s"Operator - not supported for types $xType and $yType")
+    }
   }
 
   override def toString: String = s"$x - $y"
@@ -49,7 +63,6 @@ case class Braces(expression: Expression) extends Primary {
   }
 
   def evaluateType(staticInfo: StaticInfo): String = {
-    // Hack: expressions evaluating to first type
     expression.evaluateType(staticInfo)
   }
 
@@ -69,8 +82,15 @@ case class MultiplicationTerm(x: Evaluable, y: Evaluable) extends Term {
   }
 
   def evaluateType(staticInfo: StaticInfo): String = {
-    // Hack: expressions evaluating to first type
-    x.evaluateType(staticInfo)
+    val xType = x.evaluateType(staticInfo)
+    val yType = y.evaluateType(staticInfo)
+
+    staticInfo.functionSignatures.get(s"$xType$$__mult__$yType") match {
+      case Some((returnType, parameterList)) =>
+        returnType
+      case None =>
+        throw new FafnirRuntimeException(y, s"Operator * not supported for types $xType and $yType")
+    }
   }
 
   override def toString: String = s"($x * $y)"
@@ -89,8 +109,15 @@ case class DivisionTerm(x: Evaluable, y: Evaluable) extends Term {
   }
 
   def evaluateType(staticInfo: StaticInfo): String = {
-    // Hack: expressions evaluating to first type
-    x.evaluateType(staticInfo)
+    val xType = x.evaluateType(staticInfo)
+    val yType = y.evaluateType(staticInfo)
+
+    staticInfo.functionSignatures.get(s"$xType$$__div__$yType") match {
+      case Some((returnType, parameterList)) =>
+        returnType
+      case None =>
+        throw new FafnirRuntimeException(y, s"Operator / not supported for types $xType and $yType")
+    }
   }
 
   override def toString: String = s"($x / $y)"
